@@ -44,7 +44,7 @@ class ReadingEntry(BaseModel):
     isbn: Optional[str] = None
     reading_type: str = "physical_book"
     length_pages: Optional[int] = None
-    length_duration: Optional[str] = None
+    length_duration: Optional[int] = None
     status: str = "pending"
     progress_fraction: Optional[float] = None
     started_date: Optional[str] = None
@@ -192,7 +192,7 @@ async def add_reading_entry(
     isbn: Optional[str] = None,
     reading_type: str = "physical_book",
     length_pages: Optional[str] = None,  # Accept as string, convert to int
-    length_duration: Optional[int] = None,  # Accept as int (minutes), not string
+    length_duration: Optional[str] = None,  # Accept as string, convert to int
     status: str = "pending",
     progress_fraction: Optional[str] = None,  # Accept as string, convert to float
     notes: Optional[str] = None,
@@ -208,7 +208,7 @@ async def add_reading_entry(
         isbn: ISBN number
         reading_type: Type of book (physical_book, audiobook, ebook, magazine, comic)
         length_pages: Number of pages (for physical books) - accepts string, converts to int
-        length_duration: Duration in minutes as integer (e.g., 154 for 2h 34m)
+        length_duration: Duration in minutes (e.g., "154" for 2h 34m)
         status: Current status (pending, in_progress, paused, completed, abandoned)
         progress_fraction: Progress as decimal string (e.g., "0.67" for 2/3 completed)
         notes: Additional notes
@@ -229,6 +229,13 @@ async def add_reading_entry(
             except (ValueError, TypeError):
                 return f"❌ Error: length_pages must be a valid integer, got '{length_pages}'"
         
+        length_duration_int = None
+        if length_duration is not None:
+            try:
+                length_duration_int = int(length_duration)
+            except (ValueError, TypeError):
+                return f"❌ Error: length_duration must be a valid integer, got '{length_duration}'"
+        
         progress_fraction_float = None
         if progress_fraction is not None:
             try:
@@ -246,7 +253,7 @@ async def add_reading_entry(
             "isbn": isbn,
             "reading_type": reading_type,
             "length_pages": length_pages_int,
-            "length_duration": length_duration,
+            "length_duration": length_duration_int,
             "status": status,
             "progress_fraction": progress_fraction_float,
             "notes": notes,

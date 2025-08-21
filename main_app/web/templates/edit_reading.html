@@ -89,6 +89,7 @@ form.addEventListener('input', () => {
 
 // Form submission handling
 form.addEventListener('submit', (e) => {
+    hasUnsavedChanges = false; // Prevent warning popup on save
     saveBtn.textContent = '⏳ Saving...';
     saveBtn.disabled = true;
     localStorage.removeItem('reading_edit_draft_{{ entry.id }}');
