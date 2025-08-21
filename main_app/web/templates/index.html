@@ -29,6 +29,17 @@
         </div>
         <a href="/web" style="text-decoration: none; color: #667eea;">← All Users</a>
     </div>
+    
+    <!-- Quick Actions in Header -->
+    <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+        {% if selected_user.name == "simon" %}
+        <a href="/web/reading?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">📚 Add Book</a>
+        <a href="/web/drawing?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">🎨 Add Art</a>
+        {% else %}
+        <a href="/web/fitness?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">💪 Add Workout</a>
+        <a href="/web/reading?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">📚 Add Book</a>
+        {% endif %}
+    </div>
 </div>
 
 <!-- Monthly Stats -->
@@ -70,23 +81,6 @@
     {% endif %}
 </div>
 
-<!-- Quick Actions -->
-<div class="card" style="margin-bottom: var(--spacing-lg);">
-    <div class="card-header">
-        <h3 class="card-title">🚀 Quick Actions</h3>
-    </div>
-    {% if selected_user.name == "simon" %}
-    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-        <a href="/web/reading?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; text-align: center;">📚 Add Book</a>
-        <a href="/web/drawing?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; text-align: center;">🎨 Add Art</a>
-    </div>
-    {% else %}
-    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-        <a href="/web/fitness?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; text-align: center;">💪 Add Workout</a>
-        <a href="/web/reading?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; text-align: center;">📚 Add Book</a>
-    </div>
-    {% endif %}
-</div>
 
 {% else %}
 <!-- Default quick actions for all users -->

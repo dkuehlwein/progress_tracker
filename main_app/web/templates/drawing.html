@@ -3,20 +3,14 @@
 {% block title %}Drawing Entries - Progress Tracker{% endblock %}
 
 {% block content %}
+<!-- Drawing Entries -->
 <div class="card">
     <div class="card-header">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h2 class="card-title">🎨 Drawing Entries</h2>
-            <a href="/web/drawing/add" class="btn">🖌️ Add Drawing Entry</a>
-        </div>
+        <h3 class="card-title">🎨 Drawing Entries</h3>
+        <a href="/web/drawing/add" class="btn">🖌️ Add Drawing Entry</a>
     </div>
-</div>
-
-<!-- Filters -->
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">🔍 Filters</h3>
-    </div>
+    
+    <!-- Filters -->
     <div class="filters">
         <div class="form-group">
             <label for="userFilter">User:</label>
@@ -53,26 +47,24 @@
             <input type="text" id="searchFilter" placeholder="Title, subject, or notes...">
         </div>
     </div>
-</div>
 
-<!-- Entries Table -->
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">🎨 Entries</h3>
-        <span class="status-badge status-info" id="entryCount">{{ entries|length }} entries</span>
+    <!-- Active Filters Display -->
+    <div class="active-filters" id="activeFilters">
+        <div class="active-filters-title">🔍 Active Filters</div>
+        <div class="filter-chips" id="filterChips"></div>
     </div>
     {% if entries %}
         <div class="table-responsive">
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Title</th>
-                        <th>User</th>
-                        <th>Status</th>
-                        <th>Medium</th>
-                        <th>Duration</th>
+                        <th class="sortable" onclick="sortTable(0)" data-sort="title">Title</th>
+                        <th class="sortable" onclick="sortTable(1)" data-sort="user">User</th>
+                        <th class="sortable" onclick="sortTable(2)" data-sort="status">Status</th>
+                        <th class="sortable" onclick="sortTable(3)" data-sort="medium">Medium</th>
+                        <th class="sortable" onclick="sortTable(4)" data-sort="duration">Duration</th>
                         <th>Image</th>
-                        <th>Added</th>
+                        <th class="sortable" onclick="sortTable(6)" data-sort="added">Added</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -124,7 +116,7 @@
                         <td>{{ entry.created_at.strftime('%Y-%m-%d') }}</td>
                         <td>
                             <div class="action-buttons">
-                                <a href="/web/drawing/edit/{{ entry.id }}" class="btn btn-sm btn-outline">✏️ Edit</a>
+                                <a href="/web/drawing/edit/{{ entry.id }}" class="btn btn-sm btn-outline">✏️</a>
                                 <form method="POST" action="/web/drawing/delete/{{ entry.id }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this drawing entry?')">
                                     <button type="submit" class="btn btn-sm btn-delete">🗑️</button>
                                 </form>
@@ -156,6 +148,16 @@
                 </tbody>
             </table>
         </div>
+        <div class="results-counter">
+            <div>
+                Showing <span class="results-count" id="entryCount">{{ entries|length }}</span> entries
+            </div>
+            <div class="results-actions">
+                <button class="btn-filter-reset" id="clearFilters" onclick="clearAllFilters()" style="display: none;">
+                    🗑️ Clear Filters
+                </button>
+            </div>
+        </div>
     {% else %}
         <div style="text-align: center; padding: var(--spacing-xl); color: #6c757d;">
             <div style="font-size: 3rem; margin-bottom: var(--spacing-md);">🎨</div>
@@ -171,42 +173,194 @@
 </div>
 
 <script>
-// Filter functionality
+// Enhanced Filter and Table Functionality
+let currentSort = { column: -1, direction: 'asc' };
+let activeFilters = {};
+
+// Filter functionality with visual enhancements
 function filterEntries() {
     const userFilter = document.getElementById('userFilter').value;
     const statusFilter = document.getElementById('statusFilter').value;
     const mediumFilter = document.getElementById('mediumFilter').value;
     const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
     
+    // Store active filters
+    activeFilters = {
+        user: userFilter,
+        status: statusFilter,
+        medium: mediumFilter,
+        search: searchFilter
+    };
+    
     const rows = document.querySelectorAll('#entriesTableBody tr:not(.details-row)');
     let visibleCount = 0;
     
-    rows.forEach(row => {
-        const userId = row.dataset.userId;
-        const status = row.dataset.status;
-        const medium = row.dataset.medium;
-        const searchText = row.dataset.search;
-        
-        const userMatch = !userFilter || userId === userFilter;
-        const statusMatch = !statusFilter || status === statusFilter;
-        const mediumMatch = !mediumFilter || medium === mediumFilter;
-        const searchMatch = !searchFilter || searchText.includes(searchFilter);
-        
-        if (userMatch && statusMatch && mediumMatch && searchMatch) {
-            row.style.display = '';
-            visibleCount++;
-        } else {
-            row.style.display = 'none';
-            // Hide associated details row if it exists
-            const detailsRow = document.getElementById('details-' + row.querySelector('form').action.split('/').pop());
-            if (detailsRow) {
-                detailsRow.style.display = 'none';
+    // Add loading state
+    const table = document.querySelector('.table-responsive');
+    table.classList.add('table-loading');
+    
+    setTimeout(() => {
+        rows.forEach(row => {
+            const userId = row.dataset.userId;
+            const status = row.dataset.status;
+            const medium = row.dataset.medium;
+            const searchText = row.dataset.search;
+            
+            const userMatch = !userFilter || userId === userFilter;
+            const statusMatch = !statusFilter || status === statusFilter;
+            const mediumMatch = !mediumFilter || medium === mediumFilter;
+            const searchMatch = !searchFilter || searchText.includes(searchFilter);
+            
+            if (userMatch && statusMatch && mediumMatch && searchMatch) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+                // Hide associated details row if it exists
+                const detailsRow = document.getElementById('details-' + row.querySelector('form').action.split('/').pop());
+                if (detailsRow) {
+                    detailsRow.style.display = 'none';
+                }
             }
+        });
+        
+        // Update entry count
+        document.getElementById('entryCount').textContent = visibleCount;
+        
+        // Update active filters display
+        updateActiveFiltersDisplay();
+        
+        // Remove loading state
+        table.classList.remove('table-loading');
+    }, 300);
+}
+
+// Sort table functionality
+function sortTable(columnIndex) {
+    const table = document.getElementById('entriesTableBody');
+    const rows = Array.from(table.querySelectorAll('tr:not(.details-row)'));
+    const headers = document.querySelectorAll('.data-table th.sortable');
+    
+    // Update sort direction
+    if (currentSort.column === columnIndex) {
+        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSort.column = columnIndex;
+        currentSort.direction = 'asc';
+    }
+    
+    // Update header classes
+    headers.forEach((header, index) => {
+        header.classList.remove('sort-asc', 'sort-desc');
+        if (index === columnIndex) {
+            header.classList.add(currentSort.direction === 'asc' ? 'sort-asc' : 'sort-desc');
         }
     });
     
-    // Update entry count
-    document.getElementById('entryCount').textContent = `${visibleCount} entries`;
+    // Sort rows
+    rows.sort((a, b) => {
+        let aVal = a.children[columnIndex].textContent.trim();
+        let bVal = b.children[columnIndex].textContent.trim();
+        
+        // Handle different data types
+        if (columnIndex === 6) { // Added date column
+            aVal = new Date(aVal);
+            bVal = new Date(bVal);
+        } else {
+            aVal = aVal.toLowerCase();
+            bVal = bVal.toLowerCase();
+        }
+        
+        if (aVal < bVal) return currentSort.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return currentSort.direction === 'asc' ? 1 : -1;
+        return 0;
+    });
+    
+    // Reappend sorted rows
+    rows.forEach(row => {
+        table.appendChild(row);
+        // Also move associated details row if it exists
+        const detailsRow = document.getElementById('details-' + row.querySelector('form').action.split('/').pop());
+        if (detailsRow) {
+            table.appendChild(detailsRow);
+        }
+    });
+}
+
+// Update active filters display
+function updateActiveFiltersDisplay() {
+    const activeFiltersDiv = document.getElementById('activeFilters');
+    const filterChipsDiv = document.getElementById('filterChips');
+    const clearButton = document.getElementById('clearFilters');
+    
+    filterChipsDiv.innerHTML = '';
+    let hasActiveFilters = false;
+    
+    // Create filter chips
+    if (activeFilters.user) {
+        const userSelect = document.getElementById('userFilter');
+        const selectedOption = userSelect.options[userSelect.selectedIndex];
+        createFilterChip('User', selectedOption.text, () => {
+            document.getElementById('userFilter').value = '';
+            filterEntries();
+        });
+        hasActiveFilters = true;
+    }
+    
+    if (activeFilters.status) {
+        createFilterChip('Status', activeFilters.status.replace('_', ' ').replace(/\w+/g, w => w[0].toUpperCase() + w.slice(1)), () => {
+            document.getElementById('statusFilter').value = '';
+            filterEntries();
+        });
+        hasActiveFilters = true;
+    }
+    
+    if (activeFilters.medium) {
+        createFilterChip('Medium', activeFilters.medium.replace('_', ' ').replace(/\w+/g, w => w[0].toUpperCase() + w.slice(1)), () => {
+            document.getElementById('mediumFilter').value = '';
+            filterEntries();
+        });
+        hasActiveFilters = true;
+    }
+    
+    if (activeFilters.search) {
+        createFilterChip('Search', `"${activeFilters.search}"`, () => {
+            document.getElementById('searchFilter').value = '';
+            filterEntries();
+        });
+        hasActiveFilters = true;
+    }
+    
+    // Show/hide active filters and clear button
+    if (hasActiveFilters) {
+        activeFiltersDiv.classList.add('has-filters');
+        clearButton.style.display = 'inline-flex';
+    } else {
+        activeFiltersDiv.classList.remove('has-filters');
+        clearButton.style.display = 'none';
+    }
+}
+
+// Create filter chip
+function createFilterChip(label, value, onRemove) {
+    const chip = document.createElement('div');
+    chip.className = 'filter-chip';
+    chip.innerHTML = `
+        <span>${label}: ${value}</span>
+        <button class="filter-chip-remove" onclick="event.stopPropagation();">&times;</button>
+    `;
+    
+    chip.querySelector('.filter-chip-remove').addEventListener('click', onRemove);
+    document.getElementById('filterChips').appendChild(chip);
+}
+
+// Clear all filters
+function clearAllFilters() {
+    document.getElementById('userFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('mediumFilter').value = '';
+    document.getElementById('searchFilter').value = '';
+    filterEntries();
 }
 
 // Add event listeners
@@ -215,18 +369,25 @@ document.getElementById('statusFilter').addEventListener('change', filterEntries
 document.getElementById('mediumFilter').addEventListener('change', filterEntries);
 document.getElementById('searchFilter').addEventListener('input', filterEntries);
 
-// Row click to toggle details
+// Row click to toggle details with enhanced UX
 document.querySelectorAll('#entriesTableBody tr:not(.details-row)').forEach(row => {
-    row.style.cursor = 'pointer';
+    row.classList.add('expandable');
     row.addEventListener('click', function(e) {
         if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.tagName === 'IMG') return;
         
         const entryId = this.querySelector('form').action.split('/').pop();
         const detailsRow = document.getElementById('details-' + entryId);
         if (detailsRow) {
-            detailsRow.style.display = detailsRow.style.display === 'none' ? '' : 'none';
+            const isVisible = detailsRow.style.display !== 'none';
+            detailsRow.style.display = isVisible ? 'none' : '';
+            this.classList.toggle('expanded', !isVisible);
         }
     });
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    filterEntries();
 });
 
 // Image modal handling
