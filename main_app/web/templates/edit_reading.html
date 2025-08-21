@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Reading Entry - Progress Tracker{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>✏️ Edit Reading Entry</h2>
+    <p style="color: #6c757d; margin-bottom: 2rem;">Update your reading progress</p>
+</div>
+
+<div class="card">
+    <form action="/web/reading/edit/{{ entry.id }}" method="POST">
+        <div class="form-group">
+            <label for="user_id">User:</label>
+            <select name="user_id" id="user_id" required>
+                {% for user in users %}
+                <option value="{{ user.id }}" {% if user.id == entry.user_id %}selected{% endif %}>{{ user.display_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="title">Title *:</label>
+            <input type="text" name="title" id="title" required value="{{ entry.title }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="author">Author:</label>
+            <input type="text" name="author" id="author" value="{{ entry.author or '' }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="isbn">ISBN:</label>
+            <input type="text" name="isbn" id="isbn" value="{{ entry.isbn or '' }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="reading_type">Type:</label>
+            <select name="reading_type" id="reading_type">
+                {% for type_name in reading_types %}
+                <option value="{{ type_name }}" {% if type_name == entry.reading_type.name %}selected{% endif %}>
+                    {{ type_name.replace('_', ' ').title() }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="length_pages">Length (pages):</label>
+            <input type="number" name="length_pages" id="length_pages" value="{{ entry.length_pages or '' }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="length_duration">Duration (for audiobooks):</label>
+            <input type="text" name="length_duration" id="length_duration" value="{{ entry.length_duration or '' }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="status">Status:</label>
+            <select name="status" id="status">
+                {% for status_name in reading_statuses %}
+                <option value="{{ status_name }}" {% if status_name == entry.status.name %}selected{% endif %}>
+                    {{ status_name.replace('_', ' ').title() }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="progress_fraction">Progress (0.0 to 1.0):</label>
+            <input type="number" name="progress_fraction" id="progress_fraction" step="0.01" min="0" max="1" value="{{ entry.progress_fraction or '' }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="notes">Notes:</label>
+            <textarea name="notes" id="notes">{{ entry.notes or '' }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="pause_reason">Pause Reason:</label>
+            <input type="text" name="pause_reason" id="pause_reason" value="{{ entry.pause_reason or '' }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="series_info">Series Info:</label>
+            <textarea name="series_info" id="series_info">{{ entry.series_info or '' }}</textarea>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn">💾 Save Changes</button>
+            <a href="/web/reading" class="btn btn-secondary" style="text-decoration: none;">❌ Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

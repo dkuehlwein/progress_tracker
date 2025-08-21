@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Progress Tracker{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <header class="compact-header">
+            <div class="header-content">
+                <h1>📊 Progress Tracker</h1>
+                <div class="nav-with-user">
+                    <nav class="compact-nav">
+                        <a href="/web" class="nav-link {% if request.url.path == '/web' %}active{% endif %}">🏠 Dashboard</a>
+                        <a href="/web/reading" class="nav-link {% if '/reading' in request.url.path %}active{% endif %}">📚 Reading</a>
+                        <a href="/web/drawing" class="nav-link {% if '/drawing' in request.url.path %}active{% endif %}">🎨 Drawing</a>
+                        <a href="/web/fitness" class="nav-link {% if '/fitness' in request.url.path %}active{% endif %}">💪 Fitness</a>
+                    </nav>
+                    <div class="user-selector">
+                        {% if users %}
+                        <select id="userSelector" class="user-select" onchange="changeUser(this.value)">
+                            <option value="">All Users</option>
+                            {% for user in users %}
+                            <option value="{{ user.id }}" {% if selected_user_id == user.id %}selected{% endif %}>
+                                {% if user.name == "simon" %}🧒{% else %}👨{% endif %} {{ user.display_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    <script src="{{ url_for('static', path='app.js') }}"></script>
+    <script>
+    // User switching functionality
+    function changeUser(userId) {
+        const currentPath = window.location.pathname;
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        if (userId) {
+            urlParams.set('user_id', userId);
+        } else {
+            urlParams.delete('user_id');
+        }
+        
+        const newUrl = currentPath + (urlParams.toString() ? '?' + urlParams.toString() : '');
+        window.location.href = newUrl;
+    }
+    
+    // Set selected user on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const userSelector = document.getElementById('userSelector');
+        if (userSelector) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('user_id');
+            if (userId) {
+                userSelector.value = userId;
+            }
+        }
+    });
+    </script>
+</body>
+</html>

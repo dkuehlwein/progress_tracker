@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Select User - Progress Tracker{% endblock %}
+
+{% block content %}
+<div class="card" style="text-align: center; max-width: 600px; margin: 0 auto;">
+    <h2>👥 Who are you?</h2>
+    <p style="margin-bottom: 2rem; color: #6c757d;">Select your profile to view your personalized dashboard</p>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin: 2rem 0;">
+        {% for user in users %}
+        <a href="/web/user/{{ user.id }}" style="text-decoration: none;">
+            <div style="
+                padding: 2rem; 
+                border: 3px solid #667eea; 
+                border-radius: 12px; 
+                background: white; 
+                transition: all 0.3s ease;
+                cursor: pointer;
+            " onmouseover="this.style.background='#f8f9ff'; this.style.transform='translateY(-5px)'" 
+               onmouseout="this.style.background='white'; this.style.transform='translateY(0)'">
+                
+                <div style="font-size: 4rem; margin-bottom: 1rem;">
+                    {% if user.name == "simon" %}🧒{% else %}👨{% endif %}
+                </div>
+                
+                <h3 style="color: #667eea; margin-bottom: 0.5rem;">{{ user.display_name }}</h3>
+                
+                <p style="color: #6c757d; font-size: 0.9rem;">
+                    {% if user.name == "simon" %}
+                        Reading & Drawing Progress
+                    {% else %}
+                        Fitness & Health Tracking
+                    {% endif %}
+                </p>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    
+    <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e1e5e9;">
+    
+    <p style="color: #6c757d; font-size: 0.9rem;">
+        Or browse all activities: 
+        <a href="/web/reading" style="color: #667eea;">📚 Reading</a> • 
+        <a href="/web/drawing" style="color: #667eea;">🎨 Drawing</a> • 
+        <a href="/web/fitness" style="color: #667eea;">💪 Fitness</a>
+    </p>
+</div>
+{% endblock %}
