@@ -1,21 +1,146 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Reading Entry - Progress Tracker{% endblock %}
+{% block title %}Edit "{{ entry.title }}" - Progress Tracker{% endblock %}
 
 {% block content %}
 <div class="card">
-    <h2>✏️ Edit Reading Entry</h2>
-    <p style="color: #6c757d; margin-bottom: 2rem;">Update your reading progress</p>
+    <div class="card-header">
+        <div>
+            <h2 class="card-title">✏️ Edit Reading Entry</h2>
+            <p style="color: var(--gray-600); margin: var(--spacing-sm) 0 0 0;">
+                <strong>{{ entry.title }}</strong>{% if entry.author %} by {{ entry.author }}{% endif %}
+            </p>
+        </div>
+        <div class="entry-meta">
+            <span class="status-badge status-{{ entry.status.value if entry.status else 'pending' }}">
+                {{ entry.status.value.replace('_', ' ').title() if entry.status else 'Pending' }}
+            </span>
+            {% if entry.progress_fraction %}
+            <div class="table-progress" style="width: 80px; margin-top: var(--spacing-sm);">
+                <div class="table-progress-bar" style="width: {{ (entry.progress_fraction * 100)|round }}%"></div>
+            </div>
+            <span style="font-size: var(--font-sm); color: var(--gray-600);">{{ (entry.progress_fraction * 100)|round }}%</span>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 <div class="card">
-    <form action="/web/reading/edit/{{ entry.id }}" method="POST">
+    <form action="/web/reading/edit/{{ entry.id }}" method="POST" id="editForm">
         {% include "reading_form_partial.html" %}
         
         <div class="form-actions">
-            <button type="submit" class="btn">💾 Save Changes</button>
-            <a href="/web/reading" class="btn btn-secondary">❌ Cancel</a>
+            <button type="submit" class="btn btn-primary btn-lg" id="saveBtn">
+                💾 Save Changes
+            </button>
+            <a href="/web/reading" class="btn btn-secondary btn-lg">
+                ❌ Cancel
+            </a>
+            <button type="button" class="btn btn-delete" onclick="confirmDelete()">
+                🗑️ Delete Entry
+            </button>
         </div>
     </form>
 </div>
+
+<script>
+function confirmDelete() {
+    if (confirm('Are you sure you want to delete "{{ entry.title }}"? This action cannot be undone.')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/web/reading/delete/{{ entry.id }}';
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+// Enhanced form functionality
+const form = document.getElementById('editForm');
+const saveBtn = document.getElementById('saveBtn');
+let autoSaveTimer;
+let hasUnsavedChanges = false;
+
+// Track form changes
+form.addEventListener('input', () => {
+    hasUnsavedChanges = true;
+    saveBtn.textContent = '💾 Save Changes*';
+    saveBtn.classList.add('btn-warning');
+    saveBtn.classList.remove('btn-primary');
+    
+    clearTimeout(autoSaveTimer);
+    autoSaveTimer = setTimeout(() => {
+        // Auto-save draft
+        const formData = new FormData(form);
+        const draftData = {};
+        formData.forEach((value, key) => {
+            draftData[key] = value;
+        });
+        localStorage.setItem('reading_edit_draft_{{ entry.id }}', JSON.stringify(draftData));
+        
+        // Show auto-save indicator
+        const indicator = document.createElement('span');
+        indicator.textContent = ' (draft saved)';
+        indicator.style.color = 'var(--success)';
+        indicator.style.fontSize = 'var(--font-sm)';
+        saveBtn.appendChild(indicator);
+        setTimeout(() => indicator.remove(), 2000);
+    }, 2000);
+});
+
+// Form submission handling
+form.addEventListener('submit', (e) => {
+    saveBtn.textContent = '⏳ Saving...';
+    saveBtn.disabled = true;
+    localStorage.removeItem('reading_edit_draft_{{ entry.id }}');
+});
+
+// Warn about unsaved changes
+window.addEventListener('beforeunload', (e) => {
+    if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+    }
+});
+
+// Load draft on page load
+window.addEventListener('load', () => {
+    const draft = localStorage.getItem('reading_edit_draft_{{ entry.id }}');
+    if (draft) {
+        try {
+            const draftData = JSON.parse(draft);
+            let hasLoadedDraft = false;
+            
+            Object.keys(draftData).forEach(key => {
+                const input = form.querySelector(`[name="${key}"]`);
+                if (input && input.value !== draftData[key]) {
+                    input.value = draftData[key];
+                    hasLoadedDraft = true;
+                }
+            });
+            
+            if (hasLoadedDraft) {
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-info';
+                alert.innerHTML = 'ℹ️ A draft was automatically restored from your last edit session.';
+                form.insertBefore(alert, form.firstChild);
+                setTimeout(() => alert.remove(), 5000);
+            }
+        } catch (e) {
+            console.log('Could not load draft');
+        }
+    }
+});
+
+// Progress calculation helper
+const progressInput = document.querySelector('#progress_fraction');
+if (progressInput) {
+    progressInput.addEventListener('input', (e) => {
+        const value = parseFloat(e.target.value);
+        if (value >= 0 && value <= 1) {
+            const percentage = Math.round(value * 100);
+            e.target.title = `${percentage}% complete`;
+        }
+    });
+}
+</script>
 {% endblock %}

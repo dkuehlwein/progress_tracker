@@ -475,6 +475,9 @@ async def update_reading_entry(
     length_duration: Optional[str] = Form(None),
     status: str = Form("PENDING"),
     progress_fraction: Optional[float] = Form(None),
+    started_date: Optional[str] = Form(None),
+    completed_date: Optional[str] = Form(None),
+    paused_date: Optional[str] = Form(None),
     notes: Optional[str] = Form(None),
     pause_reason: Optional[str] = Form(None),
     series_info: Optional[str] = Form(None),
@@ -498,18 +501,45 @@ async def update_reading_entry(
     entry.pause_reason = pause_reason if pause_reason else None
     entry.series_info = series_info if series_info else None
     
-    # Update dates based on status
+    # Parse and update dates from form input
+    if started_date:
+        try:
+            entry.started_date = datetime.fromisoformat(started_date.replace('T', ' '))
+        except ValueError:
+            pass
+    else:
+        entry.started_date = None
+        
+    if completed_date:
+        try:
+            entry.completed_date = datetime.fromisoformat(completed_date.replace('T', ' '))
+        except ValueError:
+            pass
+    else:
+        entry.completed_date = None
+        
+    if paused_date:
+        try:
+            entry.paused_date = datetime.fromisoformat(paused_date.replace('T', ' '))
+        except ValueError:
+            pass
+    else:
+        entry.paused_date = None
+    
+    # Auto-set dates based on status if not manually provided
     current_time = datetime.now()
     if status == "IN_PROGRESS" and not entry.started_date:
         entry.started_date = current_time
     elif status == "PAUSED":
         if not entry.started_date:
             entry.started_date = current_time
-        entry.paused_date = current_time
+        if not entry.paused_date:
+            entry.paused_date = current_time
     elif status == "COMPLETED":
         if not entry.started_date:
             entry.started_date = current_time
-        entry.completed_date = current_time
+        if not entry.completed_date:
+            entry.completed_date = current_time
     
     db.commit()
     return RedirectResponse(url="/web/reading", status_code=303)

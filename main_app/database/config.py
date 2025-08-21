@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://progress_user:progress_password@localhost:5432/progress_tracker")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg://progress_user:progress_password@localhost:5432/progress_tracker")
 
 engine = create_engine(
     DATABASE_URL,
