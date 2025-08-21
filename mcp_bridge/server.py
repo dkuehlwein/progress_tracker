@@ -413,6 +413,179 @@ async def add_fitness_entry(
         return f"❌ Error adding fitness entry: {str(e)}"
 
 @mcp.tool
+async def get_entry_details(
+    entry_id: int,
+    category: str
+) -> str:
+    """Get detailed information about a specific entry for editing
+    
+    Args:
+        entry_id: ID of the entry to view
+        category: Entry category (reading, drawing, fitness)
+    """
+    try:
+        # Validate category
+        if category not in ["reading", "drawing", "fitness"]:
+            return f"❌ Invalid category: {category}. Must be one of: reading, drawing, fitness"
+        
+        # Get the entry
+        try:
+            entry = await api_request("GET", f"/api/{category}/{entry_id}")
+        except Exception as e:
+            if "404" in str(e):
+                return f"❌ Entry with ID {entry_id} not found in {category} category"
+            raise e
+        
+        # Get user info
+        users = await get_users()
+        user_name = next((u.display_name for u in users if u.id == entry.get('user_id')), "Unknown User")
+        
+        # Format the entry details
+        category_emoji = {"reading": "📚", "drawing": "🎨", "fitness": "💪"}
+        emoji = category_emoji.get(category, "ℹ️")
+        
+        result = f"{emoji} {category.title()} Entry Details (ID: {entry_id})\n"
+        result += f"User: {user_name}\n"
+        result += f"Title: {entry.get('title', 'No title')}\n"
+        result += f"Status: {entry.get('status', 'Unknown')}\n"
+        
+        # Add category-specific details
+        if category == "reading":
+            if entry.get('author'): result += f"Author: {entry['author']}\n"
+            if entry.get('isbn'): result += f"ISBN: {entry['isbn']}\n"
+            if entry.get('reading_type'): result += f"Type: {entry['reading_type']}\n"
+            if entry.get('length_pages'): result += f"Pages: {entry['length_pages']}\n"
+            if entry.get('length_duration'): result += f"Duration (min): {entry['length_duration']}\n"
+            if entry.get('progress_fraction'): result += f"Progress: {entry['progress_fraction']*100:.1f}%\n"
+            if entry.get('notes'): result += f"Notes: {entry['notes']}\n"
+            if entry.get('series_info'): result += f"Series: {entry['series_info']}\n"
+        
+        elif category == "drawing":
+            if entry.get('subject'): result += f"Subject: {entry['subject']}\n"
+            if entry.get('medium'): result += f"Medium: {entry['medium']}\n"
+            if entry.get('context'): result += f"Context: {entry['context']}\n"
+            if entry.get('duration_hours'): result += f"Duration: {entry['duration_hours']} hours\n"
+            if entry.get('sessions_count'): result += f"Sessions: {entry['sessions_count']}\n"
+            if entry.get('complexity_level'): result += f"Complexity: {entry['complexity_level']}\n"
+            if entry.get('technical_notes'): result += f"Technical Notes: {entry['technical_notes']}\n"
+            if entry.get('materials_count'): result += f"Materials Count: {entry['materials_count']}\n"
+        
+        else:  # fitness
+            if entry.get('activity_type'): result += f"Activity Type: {entry['activity_type']}\n"
+            if entry.get('description'): result += f"Description: {entry['description']}\n"
+            if entry.get('duration_minutes'): result += f"Duration: {entry['duration_minutes']} minutes\n"
+            if entry.get('distance_km'): result += f"Distance: {entry['distance_km']} km\n"
+            if entry.get('intensity_level'): result += f"Intensity: {entry['intensity_level']}\n"
+            if entry.get('location'): result += f"Location: {entry['location']}\n"
+            if entry.get('notes'): result += f"Notes: {entry['notes']}\n"
+        
+        # Add timestamps
+        if entry.get('created_at'):
+            result += f"Created: {entry['created_at']}\n"
+        if entry.get('updated_at'):
+            result += f"Updated: {entry['updated_at']}\n"
+        
+        return result
+        
+    except Exception as e:
+        return f"❌ Error getting entry details: {str(e)}"
+
+@mcp.tool
+async def edit_entry(
+    entry_id: int,
+    category: str,
+    user_name: Optional[str] = None,
+    title: Optional[str] = None,
+    status: Optional[str] = None,
+    **kwargs
+) -> str:
+    """Edit an existing progress entry
+    
+    Args:
+        entry_id: ID of the entry to edit
+        category: Entry category (reading, drawing, fitness)
+        user_name: Optional - verify entry belongs to this user
+        title: Optional - new title
+        status: Optional - new status
+        **kwargs: Other fields to update (varies by category)
+        
+    Reading fields: author, isbn, reading_type, length_pages, length_duration, 
+                   progress_fraction, notes, pause_reason, series_info
+    Drawing fields: subject, medium, context, location, duration_hours, sessions_count,
+                   process_description, technical_notes, materials_count, complexity_level,
+                   completion_notes, continuation_plans, reference_link
+    Fitness fields: activity_type, description, duration_minutes, distance_km,
+                   intensity_level, location, notes, achievements, next_goals
+    """
+    try:
+        # Validate category
+        if category not in ["reading", "drawing", "fitness"]:
+            return f"❌ Invalid category: {category}. Must be one of: reading, drawing, fitness"
+        
+        # First, get the existing entry to verify it exists and get user info
+        try:
+            existing_entry = await api_request("GET", f"/api/{category}/{entry_id}")
+        except Exception as e:
+            if "404" in str(e):
+                return f"❌ Entry with ID {entry_id} not found in {category} category"
+            raise e
+        
+        # If user_name provided, verify the entry belongs to that user
+        if user_name:
+            users = await get_users()
+            target_user = next((u for u in users if u.name.lower() == user_name.lower()), None)
+            if not target_user:
+                return f"❌ User '{user_name}' not found"
+            if existing_entry.get('user_id') != target_user.id:
+                return f"❌ Entry {entry_id} does not belong to user '{user_name}'"
+        
+        # Build update data - only include non-None values
+        update_data = {}
+        if title is not None:
+            update_data["title"] = title
+        if status is not None:
+            update_data["status"] = status
+        
+        # Add category-specific fields from kwargs
+        for field, value in kwargs.items():
+            if value is not None:
+                # Handle numeric conversions
+                if field in ['length_pages', 'length_duration', 'sessions_count', 'materials_count', 'calories_burned', 'heart_rate_avg', 'heart_rate_max', 'perceived_effort']:
+                    try:
+                        update_data[field] = int(value)
+                    except (ValueError, TypeError):
+                        return f"❌ Error: {field} must be a valid integer, got '{value}'"
+                elif field in ['progress_fraction', 'duration_hours', 'duration_minutes', 'planned_duration', 'distance_km']:
+                    try:
+                        float_value = float(value)
+                        if field == 'progress_fraction' and not (0.0 <= float_value <= 1.0):
+                            return f"❌ Error: progress_fraction must be between 0.0 and 1.0, got {float_value}"
+                        update_data[field] = float_value
+                    except (ValueError, TypeError):
+                        return f"❌ Error: {field} must be a valid number, got '{value}'"
+                else:
+                    update_data[field] = value
+        
+        if not update_data:
+            return f"❌ No fields to update. Please provide at least one field to modify."
+        
+        # Make the update request
+        updated_entry = await api_request("PUT", f"/api/{category}/{entry_id}", update_data)
+        
+        # Get user info for response
+        users = await get_users()
+        user_name_display = next((u.display_name for u in users if u.id == updated_entry.get('user_id')), "Unknown User")
+        
+        # Format success message
+        category_emoji = {"reading": "📚", "drawing": "🎨", "fitness": "💪"}
+        emoji = category_emoji.get(category, "✅")
+        
+        return f"{emoji} {category.title()} entry updated successfully!\nID: {entry_id}\nTitle: {updated_entry.get('title', 'Unknown')}\nUser: {user_name_display}\nStatus: {updated_entry.get('status', 'Unknown')}"
+        
+    except Exception as e:
+        return f"❌ Error editing {category} entry: {str(e)}"
+
+@mcp.tool
 async def list_entries(
     user_name: Optional[str] = None,
     category: Optional[str] = None,
