@@ -32,7 +32,7 @@ class ReadingEntry(Base):
     # Type and length
     reading_type = Column(Enum(ReadingType), default=ReadingType.PHYSICAL_BOOK, index=True)
     length_pages = Column(Integer)
-    length_duration = Column(String)  # For audiobooks: "2h 34m"
+    length_duration = Column(Integer)  # For audiobooks: duration in minutes
     
     # Progress tracking
     status = Column(Enum(ReadingStatus), default=ReadingStatus.PENDING, index=True)  # Index for status filtering

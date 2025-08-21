@@ -15,7 +15,7 @@ class ReadingEntryCreate(BaseModel):
     isbn: Optional[str] = None
     reading_type: ReadingType = ReadingType.PHYSICAL_BOOK
     length_pages: Optional[int] = None
-    length_duration: Optional[str] = None
+    length_duration: Optional[int] = None
     status: ReadingStatus = ReadingStatus.PENDING
     progress_fraction: Optional[float] = None
     started_date: Optional[datetime] = None
@@ -31,7 +31,7 @@ class ReadingEntryUpdate(BaseModel):
     isbn: Optional[str] = None
     reading_type: Optional[ReadingType] = None
     length_pages: Optional[int] = None
-    length_duration: Optional[str] = None
+    length_duration: Optional[int] = None
     status: Optional[ReadingStatus] = None
     progress_fraction: Optional[float] = None
     started_date: Optional[datetime] = None
@@ -49,7 +49,7 @@ class ReadingEntryResponse(BaseModel):
     isbn: Optional[str]
     reading_type: ReadingType
     length_pages: Optional[int]
-    length_duration: Optional[str]
+    length_duration: Optional[int]
     status: ReadingStatus
     progress_fraction: Optional[float]
     started_date: Optional[datetime]

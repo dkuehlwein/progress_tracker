@@ -191,10 +191,10 @@ async def add_reading_entry(
     author: Optional[str] = None,
     isbn: Optional[str] = None,
     reading_type: str = "physical_book",
-    length_pages: Optional[int] = None,
-    length_duration: Optional[str] = None,
+    length_pages: Optional[str] = None,  # Accept as string, convert to int
+    length_duration: Optional[int] = None,  # Accept as int (minutes), not string
     status: str = "pending",
-    progress_fraction: Optional[float] = None,
+    progress_fraction: Optional[str] = None,  # Accept as string, convert to float
     notes: Optional[str] = None,
     pause_reason: Optional[str] = None,
     series_info: Optional[str] = None
@@ -207,10 +207,10 @@ async def add_reading_entry(
         author: Book author
         isbn: ISBN number
         reading_type: Type of book (physical_book, audiobook, ebook, magazine, comic)
-        length_pages: Number of pages (for physical books)
-        length_duration: Duration like "2h 34m" (for audiobooks)
+        length_pages: Number of pages (for physical books) - accepts string, converts to int
+        length_duration: Duration in minutes as integer (e.g., 154 for 2h 34m)
         status: Current status (pending, in_progress, paused, completed, abandoned)
-        progress_fraction: Progress as decimal (e.g., 0.67 for 2/3 completed)
+        progress_fraction: Progress as decimal string (e.g., "0.67" for 2/3 completed)
         notes: Additional notes
         pause_reason: Reason if paused
         series_info: Series information
@@ -221,6 +221,23 @@ async def add_reading_entry(
         if not user:
             return f"User '{user_name}' not found. Available users: {', '.join([u.name for u in await get_users()])}"
         
+        # Convert string inputs to proper types
+        length_pages_int = None
+        if length_pages is not None:
+            try:
+                length_pages_int = int(length_pages)
+            except (ValueError, TypeError):
+                return f"❌ Error: length_pages must be a valid integer, got '{length_pages}'"
+        
+        progress_fraction_float = None
+        if progress_fraction is not None:
+            try:
+                progress_fraction_float = float(progress_fraction)
+                if not (0.0 <= progress_fraction_float <= 1.0):
+                    return f"❌ Error: progress_fraction must be between 0.0 and 1.0, got {progress_fraction_float}"
+            except (ValueError, TypeError):
+                return f"❌ Error: progress_fraction must be a valid decimal number, got '{progress_fraction}'"
+        
         # Prepare data
         entry_data = {
             "user_id": user.id,
@@ -228,10 +245,10 @@ async def add_reading_entry(
             "author": author,
             "isbn": isbn,
             "reading_type": reading_type,
-            "length_pages": length_pages,
+            "length_pages": length_pages_int,
             "length_duration": length_duration,
             "status": status,
-            "progress_fraction": progress_fraction,
+            "progress_fraction": progress_fraction_float,
             "notes": notes,
             "pause_reason": pause_reason,
             "series_info": series_info

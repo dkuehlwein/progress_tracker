@@ -12,7 +12,7 @@ class ReadingFormSchema(BaseModel):
     isbn: Optional[str] = Field(None, max_length=20, regex=r'^[\d\-X]*$')
     reading_type: str = Field("physical_book", description="Reading type")
     length_pages: Optional[int] = Field(None, ge=1, le=10000)
-    length_duration: Optional[str] = Field(None, max_length=20, regex=r'^\d+h\s*\d*m?$|^\d+m$')
+    length_duration: Optional[int] = Field(None, ge=1, le=100000)  # Duration in minutes
     status: str = Field("pending", description="Reading status")
     progress_fraction: Optional[float] = Field(None, ge=0.0, le=1.0)
     notes: Optional[str] = Field(None, max_length=2000)
