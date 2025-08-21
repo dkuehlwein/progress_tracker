@@ -24,20 +24,20 @@ class DrawingEntry(Base):
     __tablename__ = "drawing_entries"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)  # Index for user queries
     
     # Basic information
-    title = Column(String, nullable=False)
-    subject = Column(String)  # "Rainbow snake design", "Nature composition"
-    medium = Column(Enum(DrawingMedium))
+    title = Column(String, nullable=False, index=True)  # Index for title searches
+    subject = Column(String, index=True)  # "Rainbow snake design", "Nature composition"
+    medium = Column(Enum(DrawingMedium), index=True)  # Index for medium filtering
     
     # Context and setting
     context = Column(Text)  # "Multi-day home project, working alongside almost-8-year-old peer"
     location = Column(String)  # "Home", "Kosta Glassworks, Sweden"
     
-    # Time and dates
-    start_date = Column(DateTime)
-    end_date = Column(DateTime)
+    # Time and dates - indexed for date range queries
+    start_date = Column(DateTime, index=True)
+    end_date = Column(DateTime, index=True)
     duration_hours = Column(Float)  # Total time spent
     sessions_count = Column(Integer)  # Number of work sessions
     
@@ -49,10 +49,10 @@ class DrawingEntry(Base):
     # Technical details
     technical_notes = Column(Text)  # Complex pattern matching, color gradient management, etc.
     materials_count = Column(Integer)  # Number of beads, etc.
-    complexity_level = Column(String)  # "advanced", "beginner", "intermediate"
+    complexity_level = Column(String, index=True)  # "advanced", "beginner", "intermediate" - indexed for filtering
     
     # Progress and completion
-    status = Column(Enum(DrawingStatus), default=DrawingStatus.PLANNED)
+    status = Column(Enum(DrawingStatus), default=DrawingStatus.PLANNED, index=True)  # Index for status filtering
     completion_notes = Column(Text)
     continuation_plans = Column(Text)  # "Expressed intention to continue work next day"
     
@@ -62,7 +62,7 @@ class DrawingEntry(Base):
     image_filename = Column(String)  # Filename of uploaded image
     
     # Metadata
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)  # Index for ordering
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships

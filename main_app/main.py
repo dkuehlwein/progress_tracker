@@ -2,18 +2,28 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-import os
 from api import reading, drawing, fitness, users, web
 from database.config import engine, Base
+from config import APP_NAME, APP_DESCRIPTION, APP_VERSION, DEBUG
+from utils.logging import setup_logging, get_logger
+
+# Setup logging
+log_level = "DEBUG" if DEBUG else "INFO"
+setup_logging(level=log_level)
+logger = get_logger(__name__)
 
 # Create database tables
+logger.info("Creating database tables...")
 Base.metadata.create_all(bind=engine)
+logger.info("Database tables created successfully")
 
 app = FastAPI(
-    title="Progress Tracker API",
-    description="Track reading, drawing, and fitness progress for multiple users",
-    version="1.0.0"
+    title=f"{APP_NAME} API",
+    description=APP_DESCRIPTION,
+    version=APP_VERSION
 )
+
+logger.info(f"Starting {APP_NAME} API v{APP_VERSION}")
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="web/static"), name="static")
@@ -37,4 +47,5 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    from config import HOST, PORT, DEBUG
+    uvicorn.run("main:app", host=HOST, port=PORT, reload=DEBUG)

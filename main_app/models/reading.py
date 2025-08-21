@@ -22,26 +22,26 @@ class ReadingEntry(Base):
     __tablename__ = "reading_entries"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)  # Index for user queries
     
     # Basic information
-    title = Column(String, nullable=False)
-    author = Column(String)
-    isbn = Column(String)
+    title = Column(String, nullable=False, index=True)  # Index for title searches
+    author = Column(String, index=True)  # Index for author searches
+    isbn = Column(String, index=True)  # Index for ISBN lookups
     
     # Type and length
-    reading_type = Column(Enum(ReadingType), default=ReadingType.PHYSICAL_BOOK)
+    reading_type = Column(Enum(ReadingType), default=ReadingType.PHYSICAL_BOOK, index=True)
     length_pages = Column(Integer)
     length_duration = Column(String)  # For audiobooks: "2h 34m"
     
     # Progress tracking
-    status = Column(Enum(ReadingStatus), default=ReadingStatus.PENDING)
+    status = Column(Enum(ReadingStatus), default=ReadingStatus.PENDING, index=True)  # Index for status filtering
     progress_fraction = Column(Float)  # 0.0 to 1.0 (e.g., 2/3 = 0.67)
     
-    # Dates
-    started_date = Column(DateTime)
-    paused_date = Column(DateTime)
-    completed_date = Column(DateTime)
+    # Dates - indexed for date range queries
+    started_date = Column(DateTime, index=True)
+    paused_date = Column(DateTime, index=True)
+    completed_date = Column(DateTime, index=True)
     
     # Notes and context
     notes = Column(Text)
@@ -49,7 +49,7 @@ class ReadingEntry(Base):
     series_info = Column(String)   # "Band 8 der beliebten Kinderbuch-Reihe"
     
     # Metadata
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)  # Index for ordering
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships

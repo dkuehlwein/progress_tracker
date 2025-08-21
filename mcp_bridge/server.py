@@ -6,6 +6,7 @@ Connects Claude Desktop to the Progress Tracker API
 
 import asyncio
 import os
+import logging
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 import httpx
@@ -20,8 +21,16 @@ load_dotenv()
 MAIN_APP_URL = os.getenv("MAIN_APP_URL", "http://localhost:8000")
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
+# Setup logging
+logging.basicConfig(
+    level=logging.DEBUG if DEBUG else logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
 # Initialize FastMCP
 mcp = FastMCP("Progress Tracker 📊", version="1.0.0")
+logger.info("MCP Bridge initialized")
 
 # Pydantic models for data validation
 class User(BaseModel):
@@ -89,36 +98,75 @@ class FitnessEntry(BaseModel):
 
 # Helper functions
 async def api_request(method: str, endpoint: str, data: Optional[Dict] = None) -> Dict:
-    """Make HTTP request to the main app API"""
+    """Make HTTP request to the main app API with proper error handling"""
     url = f"{MAIN_APP_URL}{endpoint}"
     
-    async with httpx.AsyncClient() as client:
-        if method.upper() == "GET":
-            response = await client.get(url)
-        elif method.upper() == "POST":
-            response = await client.post(url, json=data)
-        elif method.upper() == "PUT":
-            response = await client.put(url, json=data)
-        elif method.upper() == "DELETE":
-            response = await client.delete(url)
-        else:
-            raise ValueError(f"Unsupported HTTP method: {method}")
-        
-        response.raise_for_status()
-        return response.json()
+    try:
+        logger.debug(f"Making {method} request to {url}")
+        if data:
+            logger.debug(f"Request data: {data}")
+            
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            if method.upper() == "GET":
+                response = await client.get(url)
+            elif method.upper() == "POST":
+                response = await client.post(url, json=data)
+            elif method.upper() == "PUT":
+                response = await client.put(url, json=data)
+            elif method.upper() == "DELETE":
+                response = await client.delete(url)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
+            
+            logger.debug(f"Response status: {response.status_code}")
+            response.raise_for_status()
+            result = response.json()
+            logger.debug(f"Response data: {result}")
+            return result
+            
+    except httpx.TimeoutException:
+        logger.error(f"Request timeout for {method} {url}")
+        raise Exception(f"Request timeout - the main app may be down")
+    except httpx.ConnectError:
+        logger.error(f"Connection error for {method} {url}")
+        raise Exception(f"Cannot connect to main app at {MAIN_APP_URL}")
+    except httpx.HTTPStatusError as e:
+        logger.error(f"HTTP error {e.response.status_code} for {method} {url}")
+        try:
+            error_detail = e.response.json()
+            raise Exception(f"API Error: {error_detail.get('detail', 'Unknown error')}")
+        except:
+            raise Exception(f"HTTP {e.response.status_code} error")
+    except Exception as e:
+        logger.error(f"Unexpected error for {method} {url}: {str(e)}")
+        raise Exception(f"Request failed: {str(e)}")
 
 async def get_users() -> List[User]:
     """Get all users from the API"""
-    data = await api_request("GET", "/api/users/")
-    return [User(**user) for user in data]
+    try:
+        logger.debug("Fetching users from API")
+        data = await api_request("GET", "/api/users/")
+        users = [User(**user) for user in data]
+        logger.debug(f"Found {len(users)} users")
+        return users
+    except Exception as e:
+        logger.error(f"Failed to fetch users: {str(e)}")
+        raise
 
 async def get_user_by_name(name: str) -> Optional[User]:
     """Get user by name"""
-    users = await get_users()
-    for user in users:
-        if user.name.lower() == name.lower():
-            return user
-    return None
+    try:
+        logger.debug(f"Looking up user by name: {name}")
+        users = await get_users()
+        for user in users:
+            if user.name.lower() == name.lower():
+                logger.debug(f"Found user: {user.display_name}")
+                return user
+        logger.debug(f"User not found: {name}")
+        return None
+    except Exception as e:
+        logger.error(f"Failed to get user by name '{name}': {str(e)}")
+        raise
 
 # MCP Tools
 @mcp.tool
@@ -203,7 +251,7 @@ async def add_reading_entry(
         # Remove None values
         entry_data = {k: v for k, v in entry_data.items() if v is not None}
         
-        result = await api_request("POST", "/api/reading/", entry_data)
+        await api_request("POST", "/api/reading/", entry_data)
         
         return f"✅ Reading entry added successfully!\nTitle: {title}\nUser: {user.display_name}\nStatus: {status}"
         
@@ -271,7 +319,7 @@ async def add_drawing_entry(
         # Remove None values
         entry_data = {k: v for k, v in entry_data.items() if v is not None}
         
-        result = await api_request("POST", "/api/drawing/", entry_data)
+        await api_request("POST", "/api/drawing/", entry_data)
         
         return f"🎨 Drawing entry added successfully!\nTitle: {title}\nUser: {user.display_name}\nStatus: {status}"
         
@@ -333,7 +381,7 @@ async def add_fitness_entry(
         # Remove None values
         entry_data = {k: v for k, v in entry_data.items() if v is not None}
         
-        result = await api_request("POST", "/api/fitness/", entry_data)
+        await api_request("POST", "/api/fitness/", entry_data)
         
         return f"💪 Fitness entry added successfully!\nTitle: {title}\nUser: {user.display_name}\nStatus: {status}"
         

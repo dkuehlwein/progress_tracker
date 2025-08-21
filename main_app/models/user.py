@@ -8,8 +8,8 @@ class User(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
-    display_name = Column(String)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    display_name = Column(String, index=True)  # Add index for display lookups
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
     # Relationships
