@@ -1,0 +1,92 @@
+<!-- Reading Form Partial Template -->
+<div class="form-group">
+    <label for="user_id">User:</label>
+    <select name="user_id" id="user_id" required>
+        {% for user in users %}
+        <option value="{{ user.id }}" {% if entry and entry.user_id == user.id %}selected{% endif %}>{{ user.display_name }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group">
+    <label for="title">Title *:</label>
+    <input type="text" name="title" id="title" required 
+           placeholder="Snöfrid aus dem Wiesental (1)..."
+           value="{{ entry.title if entry else '' }}">
+</div>
+
+<div class="form-group">
+    <label for="author">Author:</label>
+    <input type="text" name="author" id="author" 
+           placeholder="Andreas H. Schmachtl"
+           value="{{ entry.author if entry and entry.author else '' }}">
+</div>
+
+<div class="form-group">
+    <label for="isbn">ISBN:</label>
+    <input type="text" name="isbn" id="isbn" 
+           placeholder="978-3-401-70581-1"
+           value="{{ entry.isbn if entry and entry.isbn else '' }}">
+</div>
+
+<div class="form-group">
+    <label for="reading_type">Type:</label>
+    <select name="reading_type" id="reading_type">
+        <option value="PHYSICAL_BOOK" {% if entry and entry.reading_type and entry.reading_type.name == 'PHYSICAL_BOOK' %}selected{% endif %}>Physical Book</option>
+        <option value="AUDIOBOOK" {% if entry and entry.reading_type and entry.reading_type.name == 'AUDIOBOOK' %}selected{% endif %}>Audiobook</option>
+        <option value="EBOOK" {% if entry and entry.reading_type and entry.reading_type.name == 'EBOOK' %}selected{% endif %}>E-book</option>
+        <option value="MAGAZINE" {% if entry and entry.reading_type and entry.reading_type.name == 'MAGAZINE' %}selected{% endif %}>Magazine</option>
+        <option value="COMIC" {% if entry and entry.reading_type and entry.reading_type.name == 'COMIC' %}selected{% endif %}>Comic</option>
+    </select>
+</div>
+
+<div class="form-group">
+    <label for="length_pages">Length (pages):</label>
+    <input type="number" name="length_pages" id="length_pages" 
+           placeholder="240"
+           value="{{ entry.length_pages if entry and entry.length_pages else '' }}">
+</div>
+
+<div class="form-group">
+    <label for="length_duration">Duration (for audiobooks):</label>
+    <input type="text" name="length_duration" id="length_duration" 
+           placeholder="2h 34m"
+           value="{{ entry.length_duration if entry and entry.length_duration else '' }}">
+</div>
+
+<div class="form-group">
+    <label for="status">Status:</label>
+    <select name="status" id="status">
+        <option value="PENDING" {% if entry and entry.status and entry.status.name == 'PENDING' %}selected{% endif %}>Pending</option>
+        <option value="IN_PROGRESS" {% if entry and entry.status and entry.status.name == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+        <option value="PAUSED" {% if entry and entry.status and entry.status.name == 'PAUSED' %}selected{% endif %}>Paused</option>
+        <option value="COMPLETED" {% if entry and entry.status and entry.status.name == 'COMPLETED' %}selected{% endif %}>Completed</option>
+        <option value="ABANDONED" {% if entry and entry.status and entry.status.name == 'ABANDONED' %}selected{% endif %}>Abandoned</option>
+    </select>
+</div>
+
+<div class="form-group">
+    <label for="progress_fraction">Progress (0.0 to 1.0):</label>
+    <input type="number" name="progress_fraction" id="progress_fraction" 
+           step="0.01" min="0" max="1" placeholder="0.67"
+           value="{{ entry.progress_fraction if entry and entry.progress_fraction else '' }}">
+</div>
+
+<div class="form-group">
+    <label for="notes">Notes:</label>
+    <textarea name="notes" id="notes" 
+              placeholder="Teil 1 von 12 der Snöfrid aus dem Wiesental Reihe">{{ entry.notes if entry and entry.notes else '' }}</textarea>
+</div>
+
+<div class="form-group">
+    <label for="pause_reason">Pause Reason:</label>
+    <input type="text" name="pause_reason" id="pause_reason" 
+           placeholder="too scary for Simon"
+           value="{{ entry.pause_reason if entry and entry.pause_reason else '' }}">
+</div>
+
+<div class="form-group">
+    <label for="series_info">Series Info:</label>
+    <textarea name="series_info" id="series_info" 
+              placeholder="Band 8 der beliebten Kinderbuch-Reihe">{{ entry.series_info if entry and entry.series_info else '' }}</textarea>
+</div>

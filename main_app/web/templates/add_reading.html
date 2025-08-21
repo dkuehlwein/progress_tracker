@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Add Reading Entry - Progress Tracker{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <a href="/web/reading" style="color: #667eea; text-decoration: none; font-size: 1.5rem;">←</a>
+            <h2 class="card-title">📖 Add Reading Entry</h2>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <form action="/web/reading/add" method="POST">
+        {% include "reading_form_partial.html" %}
+        
+        <div class="form-actions">
+            <button type="submit" class="btn">Add Reading Entry</button>
+            <a href="/web/reading" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
