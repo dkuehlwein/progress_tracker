@@ -87,20 +87,20 @@
 
         <div class="form-group">
             <label for="started_date" class="form-label">Started Date</label>
-            <input type="datetime-local" name="started_date" id="started_date" class="form-input"
-                   value="{% if entry and entry.started_date %}{{ entry.started_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+            <input type="date" name="started_date" id="started_date" class="form-input"
+                   value="{% if entry and entry.started_date %}{{ entry.started_date.strftime('%Y-%m-%d') }}{% endif %}">
         </div>
 
         <div class="form-group">
             <label for="completed_date" class="form-label">Completed Date</label>
-            <input type="datetime-local" name="completed_date" id="completed_date" class="form-input"
-                   value="{% if entry and entry.completed_date %}{{ entry.completed_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+            <input type="date" name="completed_date" id="completed_date" class="form-input"
+                   value="{% if entry and entry.completed_date %}{{ entry.completed_date.strftime('%Y-%m-%d') }}{% endif %}">
         </div>
 
         <div class="form-group">
             <label for="paused_date" class="form-label">Paused Date</label>
-            <input type="datetime-local" name="paused_date" id="paused_date" class="form-input"
-                   value="{% if entry and entry.paused_date %}{{ entry.paused_date.strftime('%Y-%m-%dT%H:%M') }}{% endif %}">
+            <input type="date" name="paused_date" id="paused_date" class="form-input"
+                   value="{% if entry and entry.paused_date %}{{ entry.paused_date.strftime('%Y-%m-%d') }}{% endif %}">
         </div>
     </div>
 </div>

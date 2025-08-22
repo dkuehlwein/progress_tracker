@@ -106,7 +106,11 @@
                         <td>
                             {% if entry.reading_type and entry.reading_type.value == 'audiobook' %}
                                 {% if entry.length_duration %}
-                                    {{ entry.length_duration }}
+                                    {% if entry.length_duration >= 60 %}
+                                        {{ entry.length_duration // 60 }}h {{ entry.length_duration % 60 }}m
+                                    {% else %}
+                                        {{ entry.length_duration }} minutes
+                                    {% endif %}
                                 {% else %}
                                     -
                                 {% endif %}

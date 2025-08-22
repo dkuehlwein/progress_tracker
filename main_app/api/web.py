@@ -122,6 +122,9 @@ async def add_reading_web(
     length_duration: Optional[str] = Form(None),
     status: str = Form("pending"),
     progress_fraction: Optional[str] = Form(None),
+    started_date: Optional[str] = Form(None),
+    completed_date: Optional[str] = Form(None),
+    paused_date: Optional[str] = Form(None),
     notes: Optional[str] = Form(None),
     pause_reason: Optional[str] = Form(None),
     series_info: Optional[str] = Form(None),
@@ -157,16 +160,42 @@ async def add_reading_web(
         "series_info": series_info if series_info else None
     }
     
-    # Set dates based on status
+    # Parse and add dates from form input (date-only format)
+    if started_date:
+        try:
+            # Parse YYYY-MM-DD format and set to start of day
+            entry_data["started_date"] = datetime.fromisoformat(started_date + 'T00:00:00')
+        except ValueError:
+            pass
+            
+    if completed_date:
+        try:
+            # Parse YYYY-MM-DD format and set to end of day
+            entry_data["completed_date"] = datetime.fromisoformat(completed_date + 'T23:59:59')
+        except ValueError:
+            pass
+            
+    if paused_date:
+        try:
+            # Parse YYYY-MM-DD format and set to noon
+            entry_data["paused_date"] = datetime.fromisoformat(paused_date + 'T12:00:00')
+        except ValueError:
+            pass
+    
+    # Auto-set dates based on status if not manually provided
     current_time = datetime.now()
-    if status == "in_progress":
+    if status == "in_progress" and "started_date" not in entry_data:
         entry_data["started_date"] = current_time
     elif status == "paused":
-        entry_data["started_date"] = current_time
-        entry_data["paused_date"] = current_time
+        if "started_date" not in entry_data:
+            entry_data["started_date"] = current_time
+        if "paused_date" not in entry_data:
+            entry_data["paused_date"] = current_time
     elif status == "completed":
-        entry_data["started_date"] = current_time
-        entry_data["completed_date"] = current_time
+        if "started_date" not in entry_data:
+            entry_data["started_date"] = current_time
+        if "completed_date" not in entry_data:
+            entry_data["completed_date"] = current_time
     
     # Remove None values
     entry_data = {k: v for k, v in entry_data.items() if v is not None}
@@ -416,10 +445,11 @@ async def update_reading_entry(
     entry.pause_reason = pause_reason if pause_reason else None
     entry.series_info = series_info if series_info else None
     
-    # Parse and update dates from form input
+    # Parse and update dates from form input (date-only format)
     if started_date:
         try:
-            entry.started_date = datetime.fromisoformat(started_date.replace('T', ' '))
+            # Parse YYYY-MM-DD format and set to start of day
+            entry.started_date = datetime.fromisoformat(started_date + 'T00:00:00')
         except ValueError:
             pass
     else:
@@ -427,7 +457,8 @@ async def update_reading_entry(
         
     if completed_date:
         try:
-            entry.completed_date = datetime.fromisoformat(completed_date.replace('T', ' '))
+            # Parse YYYY-MM-DD format and set to end of day
+            entry.completed_date = datetime.fromisoformat(completed_date + 'T23:59:59')
         except ValueError:
             pass
     else:
@@ -435,7 +466,8 @@ async def update_reading_entry(
         
     if paused_date:
         try:
-            entry.paused_date = datetime.fromisoformat(paused_date.replace('T', ' '))
+            # Parse YYYY-MM-DD format and set to noon
+            entry.paused_date = datetime.fromisoformat(paused_date + 'T12:00:00')
         except ValueError:
             pass
     else:

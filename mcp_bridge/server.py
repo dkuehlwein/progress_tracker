@@ -195,6 +195,9 @@ async def add_reading_entry(
     length_duration: Optional[str] = None,  # Accept as string, convert to int
     status: str = "pending",
     progress_fraction: Optional[str] = None,  # Accept as string, convert to float
+    started_date: Optional[str] = None,  # Date format: 2024-08-15
+    completed_date: Optional[str] = None,  # Date format: 2024-08-15
+    paused_date: Optional[str] = None,  # Date format: 2024-08-15
     notes: Optional[str] = None,
     pause_reason: Optional[str] = None,
     series_info: Optional[str] = None
@@ -211,6 +214,9 @@ async def add_reading_entry(
         length_duration: Duration in minutes (e.g., "154" for 2h 34m)
         status: Current status (pending, in_progress, paused, completed, abandoned)
         progress_fraction: Progress as decimal string (e.g., "0.67" for 2/3 completed)
+        started_date: Started date in YYYY-MM-DD format (e.g., "2024-08-15")
+        completed_date: Completed date in YYYY-MM-DD format (e.g., "2024-08-15")
+        paused_date: Paused date in YYYY-MM-DD format (e.g., "2024-08-15")
         notes: Additional notes
         pause_reason: Reason if paused
         series_info: Series information
@@ -261,26 +267,167 @@ async def add_reading_entry(
             "series_info": series_info
         }
         
-        # Set dates based on status
+        # Add dates from parameters or auto-set based on status
+        if started_date:
+            try:
+                # Validate YYYY-MM-DD format and convert to start of day
+                datetime.strptime(started_date, '%Y-%m-%d')
+                entry_data["started_date"] = started_date + 'T00:00:00'
+            except ValueError:
+                return f"❌ Error: started_date must be in YYYY-MM-DD format (e.g., '2024-08-15'), got '{started_date}'"
+        
+        if completed_date:
+            try:
+                # Validate YYYY-MM-DD format and convert to end of day
+                datetime.strptime(completed_date, '%Y-%m-%d')
+                entry_data["completed_date"] = completed_date + 'T23:59:59'
+            except ValueError:
+                return f"❌ Error: completed_date must be in YYYY-MM-DD format (e.g., '2024-08-15'), got '{completed_date}'"
+        
+        if paused_date:
+            try:
+                # Validate YYYY-MM-DD format and convert to noon
+                datetime.strptime(paused_date, '%Y-%m-%d')
+                entry_data["paused_date"] = paused_date + 'T12:00:00'
+            except ValueError:
+                return f"❌ Error: paused_date must be in YYYY-MM-DD format (e.g., '2024-08-15'), got '{paused_date}'"
+        
+        # Auto-set dates based on status if not manually provided
         current_time = datetime.now().isoformat()
-        if status == "in_progress":
+        if status == "in_progress" and "started_date" not in entry_data:
             entry_data["started_date"] = current_time
         elif status == "paused":
-            entry_data["started_date"] = current_time
-            entry_data["paused_date"] = current_time
+            if "started_date" not in entry_data:
+                entry_data["started_date"] = current_time
+            if "paused_date" not in entry_data:
+                entry_data["paused_date"] = current_time
         elif status == "completed":
-            entry_data["started_date"] = current_time
-            entry_data["completed_date"] = current_time
+            if "started_date" not in entry_data:
+                entry_data["started_date"] = current_time
+            if "completed_date" not in entry_data:
+                entry_data["completed_date"] = current_time
         
         # Remove None values
         entry_data = {k: v for k, v in entry_data.items() if v is not None}
         
-        await api_request("POST", "/api/reading/", entry_data)
+        response = await api_request("POST", "/api/reading/", entry_data)
         
-        return f"✅ Reading entry added successfully!\nTitle: {title}\nUser: {user.display_name}\nStatus: {status}"
+        return f"✅ Reading entry added successfully!\nID: {response['id']}\nTitle: {title}\nUser: {user.display_name}\nStatus: {status}\n\n💡 You can edit this entry using: edit_reading_entry(entry_id={response['id']}, ...)"
         
     except Exception as e:
         return f"❌ Error adding reading entry: {str(e)}"
+
+@mcp.tool
+async def edit_reading_entry(
+    entry_id: int,
+    title: Optional[str] = None,
+    author: Optional[str] = None,
+    isbn: Optional[str] = None,
+    reading_type: Optional[str] = None,
+    length_pages: Optional[str] = None,
+    length_duration: Optional[str] = None,
+    status: Optional[str] = None,
+    progress_fraction: Optional[str] = None,
+    started_date: Optional[str] = None,
+    completed_date: Optional[str] = None,
+    paused_date: Optional[str] = None,
+    notes: Optional[str] = None,
+    pause_reason: Optional[str] = None,
+    series_info: Optional[str] = None
+) -> str:
+    """Edit an existing reading entry
+    
+    Args:
+        entry_id: ID of the reading entry to edit
+        title: Book title
+        author: Book author
+        isbn: ISBN number
+        reading_type: Type of book (physical_book, audiobook, ebook, magazine, comic)
+        length_pages: Number of pages (for physical books)
+        length_duration: Duration in minutes (for audiobooks)
+        status: Current status (pending, in_progress, paused, completed, abandoned)
+        progress_fraction: Progress as decimal string (e.g., "0.67" for 2/3 completed)
+        started_date: Started date in YYYY-MM-DD format (e.g., "2024-08-15")
+        completed_date: Completed date in YYYY-MM-DD format (e.g., "2024-08-15")
+        paused_date: Paused date in YYYY-MM-DD format (e.g., "2024-08-15")
+        notes: Additional notes
+        pause_reason: Reason if paused
+        series_info: Series information
+    """
+    try:
+        # Get current entry
+        current_entry = await api_request("GET", f"/api/reading/{entry_id}")
+        
+        # Prepare update data with only non-None values
+        update_data = {}
+        
+        if title is not None:
+            update_data["title"] = title
+        if author is not None:
+            update_data["author"] = author
+        if isbn is not None:
+            update_data["isbn"] = isbn
+        if reading_type is not None:
+            update_data["reading_type"] = reading_type
+            
+        # Convert string inputs to proper types
+        if length_pages is not None:
+            try:
+                update_data["length_pages"] = int(length_pages) if length_pages.strip() else None
+            except (ValueError, TypeError):
+                return f"❌ Error: length_pages must be a valid integer, got '{length_pages}'"
+        
+        if length_duration is not None:
+            try:
+                update_data["length_duration"] = int(length_duration) if length_duration.strip() else None
+            except (ValueError, TypeError):
+                return f"❌ Error: length_duration must be a valid integer, got '{length_duration}'"
+        
+        if status is not None:
+            update_data["status"] = status
+            
+        if progress_fraction is not None:
+            try:
+                pf = float(progress_fraction) if progress_fraction.strip() else None
+                if pf is not None and not (0.0 <= pf <= 1.0):
+                    return f"❌ Error: progress_fraction must be between 0.0 and 1.0, got {pf}"
+                update_data["progress_fraction"] = pf
+            except (ValueError, TypeError):
+                return f"❌ Error: progress_fraction must be a valid decimal number, got '{progress_fraction}'"
+        
+        # Handle dates
+        date_mappings = [
+            ("started_date", started_date, "T00:00:00"),
+            ("completed_date", completed_date, "T23:59:59"),
+            ("paused_date", paused_date, "T12:00:00")
+        ]
+        
+        for date_field, date_value, time_suffix in date_mappings:
+            if date_value is not None:
+                if date_value.strip():
+                    try:
+                        # Validate YYYY-MM-DD format
+                        datetime.strptime(date_value, '%Y-%m-%d')
+                        update_data[date_field] = date_value + time_suffix
+                    except ValueError:
+                        return f"❌ Error: {date_field} must be in YYYY-MM-DD format (e.g., '2024-08-15'), got '{date_value}'"
+                else:
+                    update_data[date_field] = None
+        
+        if notes is not None:
+            update_data["notes"] = notes
+        if pause_reason is not None:
+            update_data["pause_reason"] = pause_reason
+        if series_info is not None:
+            update_data["series_info"] = series_info
+        
+        # Update the entry
+        response = await api_request("PUT", f"/api/reading/{entry_id}", update_data)
+        
+        return f"✅ Reading entry updated successfully!\nID: {response['id']}\nTitle: {response['title']}\nStatus: {response['status']}"
+        
+    except Exception as e:
+        return f"❌ Error editing reading entry: {str(e)}"
 
 @mcp.tool
 async def add_drawing_entry(
