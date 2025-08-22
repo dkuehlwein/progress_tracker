@@ -293,9 +293,32 @@ async def api_request(method: str, endpoint: str, data: Optional[Dict] = None) -
         logger.error(f"HTTP error {e.response.status_code} for {method} {url}")
         try:
             error_detail = e.response.json()
-            raise Exception(f"API Error: {error_detail.get('detail', 'Unknown error')}")
-        except:
-            raise Exception(f"HTTP {e.response.status_code} error")
+            # Handle different error response formats
+            if isinstance(error_detail, dict):
+                if 'detail' in error_detail:
+                    detail = error_detail['detail']
+                    # Handle validation errors that contain lists of field errors
+                    if isinstance(detail, list):
+                        error_messages = []
+                        for error in detail:
+                            if isinstance(error, dict):
+                                field = error.get('loc', ['unknown'])[-1] if error.get('loc') else 'unknown'
+                                msg = error.get('msg', 'Invalid value')
+                                error_messages.append(f"{field}: {msg}")
+                        raise Exception(f"Validation errors: {'; '.join(error_messages)}")
+                    else:
+                        raise Exception(f"API Error: {detail}")
+                elif 'message' in error_detail:
+                    raise Exception(f"API Error: {error_detail['message']}")
+                else:
+                    raise Exception(f"API Error: {error_detail}")
+            else:
+                raise Exception(f"API Error: {error_detail}")
+        except Exception as inner_e:
+            if "API Error" in str(inner_e) or "Validation errors" in str(inner_e):
+                raise inner_e
+            # Fallback to status code if we can't parse the error
+            raise Exception(f"HTTP {e.response.status_code} error: {e.response.text[:200] if hasattr(e.response, 'text') else 'Unknown error'}")
     except Exception as e:
         logger.error(f"Unexpected error for {method} {url}: {str(e)}")
         raise Exception(f"Request failed: {str(e)}")
@@ -580,6 +603,8 @@ async def add_drawing_entry(
     context: Optional[str] = None,
     duration_hours: Optional[float] = None,
     status: str = "planned",
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
     technical_notes: Optional[str] = None,
     reference_link: Optional[str] = None
 ) -> str:
@@ -589,10 +614,12 @@ async def add_drawing_entry(
         user_name: Username (daniel or simon)
         title: Drawing project title
         subject: What was drawn (e.g., "Rainbow snake design")
-        medium: Medium used (colored_pencils, crayons, markers, watercolor, digital, beads, mixed_media)
+        medium: Medium used - must be one of: colored_pencils, pencil, crayons, markers, watercolor, digital, beads, mixed_media
         context: User-provided context of the work (e.g., "Multi-day home project")
         duration_hours: Total time spent in hours
         status: Current status (planned, in_progress, completed, abandoned, continued_next_day)
+        start_date: Start date in YYYY-MM-DD format (e.g., "2025-05-30")
+        end_date: End date in YYYY-MM-DD format (e.g., "2025-05-30")
         technical_notes: AI analysis of technical achievements and development
         reference_link: Link to reference image or external resource
     """
@@ -601,6 +628,11 @@ async def add_drawing_entry(
         user = await get_user_by_name(user_name)
         if not user:
             return f"User '{user_name}' not found. Available users: {', '.join([u.name for u in await get_users()])}"
+        
+        # Validate medium if provided
+        valid_mediums = ["colored_pencils", "pencil", "crayons", "markers", "watercolor", "digital", "beads", "mixed_media"]
+        if medium and medium not in valid_mediums:
+            return f"❌ Error: Invalid medium '{medium}'. Valid options are: {', '.join(valid_mediums)}"
         
         # Prepare data
         entry_data = {
@@ -615,13 +647,28 @@ async def add_drawing_entry(
             "reference_link": reference_link
         }
         
-        # Set dates based on status
-        current_time = datetime.now().isoformat()
-        if status == "in_progress":
-            entry_data["start_date"] = current_time
+        # Validate and add dates from parameters
+        if start_date:
+            formatted_date, error = validate_and_format_date(start_date, "start_date", "T00:00:00")
+            if error:
+                return error
+            entry_data["start_date"] = formatted_date
+        
+        if end_date:
+            formatted_date, error = validate_and_format_date(end_date, "end_date", "T23:59:59")
+            if error:
+                return error
+            entry_data["end_date"] = formatted_date
+        
+        # Set dates based on status if not manually provided
+        current_date = datetime.now().date().isoformat()
+        if status == "in_progress" and "start_date" not in entry_data:
+            entry_data["start_date"] = current_date + "T00:00:00"
         elif status == "completed":
-            entry_data["start_date"] = current_time
-            entry_data["end_date"] = current_time
+            if "start_date" not in entry_data:
+                entry_data["start_date"] = current_date + "T00:00:00"
+            if "end_date" not in entry_data:
+                entry_data["end_date"] = current_date + "T23:59:59"
         
         # Remove None values
         entry_data = {k: v for k, v in entry_data.items() if v is not None}

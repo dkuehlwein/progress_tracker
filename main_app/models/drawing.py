@@ -13,6 +13,7 @@ class DrawingStatus(enum.Enum):
 
 class DrawingMedium(enum.Enum):
     COLORED_PENCILS = "colored_pencils"
+    PENCIL = "pencil"
     CRAYONS = "crayons"
     MARKERS = "markers"
     WATERCOLOR = "watercolor"

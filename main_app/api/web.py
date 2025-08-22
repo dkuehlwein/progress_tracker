@@ -220,7 +220,7 @@ async def web_drawing(request: Request, user_id: Optional[int] = None, db: Sessi
         "entries": entries,
         "selected_user_id": user_id,
         "drawing_statuses": [status.value for status in DrawingStatus],
-        "drawing_mediums": ["colored_pencils", "crayons", "markers", "watercolor", "digital", "beads", "mixed_media"]
+        "drawing_mediums": [medium.value for medium in DrawingMedium]
     })
 
 @router.get("/web/drawing/add", response_class=HTMLResponse)
@@ -230,7 +230,7 @@ async def add_drawing_form(request: Request, db: Session = Depends(get_db)):
         "request": request,
         "users": users,
         "drawing_statuses": [status.value for status in DrawingStatus],
-        "drawing_mediums": ["colored_pencils", "crayons", "markers", "watercolor", "digital", "beads", "mixed_media"]
+        "drawing_mediums": [medium.value for medium in DrawingMedium]
     })
 
 @router.post("/web/drawing/add")
@@ -242,6 +242,8 @@ async def add_drawing_web(
     context: Optional[str] = Form(None),
     duration_hours: Optional[float] = Form(None),
     status: str = Form("planned"),
+    start_date: Optional[str] = Form(None),
+    end_date: Optional[str] = Form(None),
     technical_notes: Optional[str] = Form(None),
     reference_link: Optional[str] = Form(None),
     image: Optional[UploadFile] = File(None),
@@ -285,13 +287,30 @@ async def add_drawing_web(
         "image_filename": image_filename
     }
     
-    # Set dates based on status
-    current_time = datetime.now()
-    if status == "in_progress":
-        entry_data["start_date"] = current_time
+    # Parse and add dates from form input (date-only format)
+    if start_date:
+        try:
+            # Parse YYYY-MM-DD format and set to start of day
+            entry_data["start_date"] = datetime.fromisoformat(start_date + 'T00:00:00')
+        except ValueError:
+            pass
+            
+    if end_date:
+        try:
+            # Parse YYYY-MM-DD format and set to end of day
+            entry_data["end_date"] = datetime.fromisoformat(end_date + 'T23:59:59')
+        except ValueError:
+            pass
+    
+    # Set dates based on status if not manually provided
+    current_date = datetime.now().date()
+    if status == "in_progress" and "start_date" not in entry_data:
+        entry_data["start_date"] = datetime.combine(current_date, datetime.min.time())
     elif status == "completed":
-        entry_data["start_date"] = current_time
-        entry_data["end_date"] = current_time
+        if "start_date" not in entry_data:
+            entry_data["start_date"] = datetime.combine(current_date, datetime.min.time())
+        if "end_date" not in entry_data:
+            entry_data["end_date"] = datetime.combine(current_date, datetime.max.time().replace(microsecond=0))
     
     # Remove None values
     entry_data = {k: v for k, v in entry_data.items() if v is not None}
