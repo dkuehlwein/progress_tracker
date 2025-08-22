@@ -13,6 +13,18 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
 
+  postgres-dev:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_DEV_USER:-progress_user_dev}
+      POSTGRES_PASSWORD: ${POSTGRES_DEV_PASSWORD:-progress_password_dev}
+      POSTGRES_DB: ${POSTGRES_DEV_DB:-progress_tracker_dev}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   progress-tracker:
     build: .
     ports:
@@ -27,4 +39,5 @@ services:
 
 volumes:
   postgres_data:
+  postgres_dev_data:
   uploads_data:

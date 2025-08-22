@@ -46,6 +46,17 @@ async def root():
     return RedirectResponse(url="/web")
 
 if __name__ == "__main__":
+    import argparse
     import uvicorn
     from config import HOST, PORT, DEBUG
+    
+    parser = argparse.ArgumentParser(description="Progress Tracker API")
+    parser.add_argument("--dev", action="store_true", help="Use development database")
+    args = parser.parse_args()
+    
+    if args.dev:
+        import os
+        os.environ["USE_DEV_DB"] = "true"
+        logger.info("Using development database")
+    
     uvicorn.run("main:app", host=HOST, port=PORT, reload=DEBUG)

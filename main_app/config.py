@@ -5,10 +5,18 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Database Configuration
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql+psycopg://progress_user:progress_password@localhost:5432/progress_tracker"
-)
+def get_database_url():
+    if os.getenv("USE_DEV_DB", "false").lower() == "true":
+        return os.getenv(
+            "DATABASE_URL_DEV",
+            "postgresql+psycopg://progress_user_dev:progress_password_dev@localhost:5433/progress_tracker_dev"
+        )
+    return os.getenv(
+        "DATABASE_URL", 
+        "postgresql+psycopg://progress_user:progress_password@localhost:5432/progress_tracker"
+    )
+
+DATABASE_URL = get_database_url()
 
 # Server Configuration
 HOST = os.getenv("HOST", "0.0.0.0")

@@ -6,12 +6,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Prerequisites
 - PostgreSQL running via Docker: `docker-compose up -d postgres`
+- Development PostgreSQL (optional): `docker-compose up -d postgres-dev`
 - Python environment with uv: `uv venv && uv pip install -r requirements.txt`
 
 ### Main App (FastAPI)
 ```bash
 cd main_app
+# Production database (port 5432)
 uv run python main.py  # Starts on http://127.0.0.1:8000
+
+# Development database (port 5433)
+uv run python main.py --dev  # Uses development database
 ```
 
 ### Database Schema Management
@@ -58,7 +63,9 @@ This is a dual-component progress tracking system:
 - **Fitness**: Activities with metrics, duration, achievements
 
 ### Database Configuration
-- Connection string in `.env`: `DATABASE_URL=postgresql://progress_user:progress_password@localhost:5432/progress_tracker`
+- Production database (port 5432): `DATABASE_URL=postgresql://progress_user:progress_password@localhost:5432/progress_tracker`
+- Development database (port 5433): `DATABASE_URL_DEV=postgresql://progress_user_dev:progress_password_dev@localhost:5433/progress_tracker_dev`
+- Environment switching via `--dev` flag or `USE_DEV_DB=true` environment variable
 - Models auto-create tables on startup via `Base.metadata.create_all(bind=engine)`
 - Alembic available for schema migrations if needed
 
