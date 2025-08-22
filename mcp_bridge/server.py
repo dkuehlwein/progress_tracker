@@ -971,6 +971,10 @@ async def list_entries(
         
         results = []
         
+        # Get all users once at the beginning to avoid repeated API calls
+        users = await get_users()
+        user_lookup = {u.id: u.display_name for u in users}
+        
         # Get entries based on category filter
         categories = [category] if category else ["reading", "drawing", "fitness"]
         
@@ -987,9 +991,8 @@ async def list_entries(
                     for entry in limited_data:
                         user_id = entry.get('user_id')
                         
-                        # Get user name
-                        users = await get_users()
-                        user_name = next((u.display_name for u in users if u.id == user_id), "Unknown User")
+                        # Get user name from lookup table
+                        user_name = user_lookup.get(user_id, "Unknown User")
                         
                         # Format entry using category-specific formatters
                         entry_id = str(entry.get('id', 'N/A'))
