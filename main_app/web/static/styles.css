@@ -207,15 +207,15 @@ body {
 .form-section {
     background: var(--gray-50);
     border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
 }
 
 .form-section-title {
     font-size: var(--font-lg);
     font-weight: 600;
     color: var(--gray-800);
-    margin-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-xs);
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
@@ -229,11 +229,11 @@ body {
 .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-md);
+    gap: var(--spacing-xs);
 }
 
 .form-group {
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--spacing-xs);
 }
 
 .form-group.full-width {
@@ -1387,8 +1387,8 @@ body {
 /* Form Actions */
 .form-actions {
     display: flex;
-    gap: var(--spacing-md);
-    padding-top: var(--spacing-lg);
+    gap: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
     border-top: 1px solid var(--gray-200);
-    margin-top: var(--spacing-xl);
+    margin-top: var(--spacing-md);
 }

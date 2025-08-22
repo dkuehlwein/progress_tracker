@@ -98,7 +98,7 @@
         </div>
 
         <div class="form-group">
-            <label for="paused_date" class="form-label">Paused Date</label>
+            <label for="paused_date" class="form-label">Pause or Abandon Date</label>
             <input type="date" name="paused_date" id="paused_date" class="form-input"
                    value="{% if entry and entry.paused_date %}{{ entry.paused_date.strftime('%Y-%m-%d') }}{% endif %}">
         </div>
@@ -118,7 +118,7 @@
         </div>
 
         <div class="form-group">
-            <label for="pause_reason" class="form-label">Pause Reason</label>
+            <label for="pause_reason" class="form-label">Paused or Abandon Reason</label>
             <input type="text" name="pause_reason" id="pause_reason" class="form-input"
                    placeholder="too scary for Simon"
                    value="{{ entry.pause_reason if entry and entry.pause_reason else '' }}">

@@ -197,7 +197,7 @@ async def add_reading_entry(
     progress_fraction: Optional[str] = None,  # Accept as string, convert to float
     started_date: Optional[str] = None,  # Date format: 2024-08-15
     completed_date: Optional[str] = None,  # Date format: 2024-08-15
-    paused_date: Optional[str] = None,  # Date format: 2024-08-15
+    paused_date: Optional[str] = None,  # Pause or abandon date format: 2024-08-15
     notes: Optional[str] = None,
     pause_reason: Optional[str] = None,
     series_info: Optional[str] = None
@@ -216,9 +216,9 @@ async def add_reading_entry(
         progress_fraction: Progress as decimal string (e.g., "0.67" for 2/3 completed)
         started_date: Started date in YYYY-MM-DD format (e.g., "2024-08-15")
         completed_date: Completed date in YYYY-MM-DD format (e.g., "2024-08-15")
-        paused_date: Paused date in YYYY-MM-DD format (e.g., "2024-08-15")
+        paused_date: Pause or abandon date in YYYY-MM-DD format (e.g., "2024-08-15")
         notes: Additional notes
-        pause_reason: Reason if paused
+        pause_reason: Paused or abandon reason
         series_info: Series information
     """
     try:
@@ -349,9 +349,9 @@ async def edit_reading_entry(
         progress_fraction: Progress as decimal string (e.g., "0.67" for 2/3 completed)
         started_date: Started date in YYYY-MM-DD format (e.g., "2024-08-15")
         completed_date: Completed date in YYYY-MM-DD format (e.g., "2024-08-15")
-        paused_date: Paused date in YYYY-MM-DD format (e.g., "2024-08-15")
+        paused_date: Pause or abandon date in YYYY-MM-DD format (e.g., "2024-08-15")
         notes: Additional notes
-        pause_reason: Reason if paused
+        pause_reason: Paused or abandon reason
         series_info: Series information
     """
     try:
