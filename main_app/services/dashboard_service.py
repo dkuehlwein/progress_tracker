@@ -99,7 +99,7 @@ def _get_simon_monthly_stats(db: Session, user_id: int, start_of_month: datetime
         "reading_completed": len([r for r in monthly_reading if r.status.value == "completed"]),
         "drawing_count": len(monthly_drawing),
         "drawing_completed": len([d for d in monthly_drawing if d.status.value == "completed"]),
-        "total_drawing_hours": sum([d.duration_hours or 0 for d in monthly_drawing])
+        "total_drawing_hours": float(sum([d.duration_hours or 0 for d in monthly_drawing]))
     }
 
 
@@ -113,8 +113,8 @@ def _get_daniel_monthly_stats(db: Session, user_id: int, start_of_month: datetim
     return {
         "fitness_count": len(monthly_fitness),
         "fitness_completed": len([f for f in monthly_fitness if f.status.value == "completed"]),
-        "total_minutes": sum([f.duration_minutes or 0 for f in monthly_fitness]),
-        "total_distance": sum([f.distance_km or 0 for f in monthly_fitness])
+        "total_minutes": float(sum([f.duration_minutes or 0 for f in monthly_fitness])),
+        "total_distance": float(sum([f.distance_km or 0 for f in monthly_fitness]))
     }
 
 
@@ -141,8 +141,8 @@ def _get_simon_historical_data(db: Session, user_id: int, history_start: datetim
     ).group_by('year', 'month').all()
     
     return {
-        "reading_history": reading_history,
-        "drawing_history": drawing_history,
+        "reading_history": [{"year": int(r.year), "month": int(r.month), "count": r.count} for r in reading_history],
+        "drawing_history": [{"year": int(d.year), "month": int(d.month), "count": d.count} for d in drawing_history],
         "fitness_history": []
     }
 
@@ -162,5 +162,5 @@ def _get_daniel_historical_data(db: Session, user_id: int, history_start: dateti
     return {
         "reading_history": [],
         "drawing_history": [],
-        "fitness_history": fitness_history
+        "fitness_history": [{"year": int(f.year), "month": int(f.month), "count": f.count} for f in fitness_history]
     }
