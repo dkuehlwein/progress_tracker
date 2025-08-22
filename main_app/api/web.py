@@ -118,25 +118,40 @@ async def add_reading_web(
     author: Optional[str] = Form(None),
     isbn: Optional[str] = Form(None),
     reading_type: str = Form("physical_book"),
-    length_pages: Optional[int] = Form(None),
+    length_pages: Optional[str] = Form(None),
     length_duration: Optional[str] = Form(None),
     status: str = Form("pending"),
-    progress_fraction: Optional[float] = Form(None),
+    progress_fraction: Optional[str] = Form(None),
     notes: Optional[str] = Form(None),
     pause_reason: Optional[str] = Form(None),
     series_info: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
+    # Parse numeric fields properly, handling empty strings
+    parsed_length_pages = None
+    if length_pages and length_pages.strip():
+        try:
+            parsed_length_pages = int(length_pages)
+        except ValueError:
+            parsed_length_pages = None
+    
+    parsed_progress_fraction = None
+    if progress_fraction and progress_fraction.strip():
+        try:
+            parsed_progress_fraction = float(progress_fraction)
+        except ValueError:
+            parsed_progress_fraction = None
+
     entry_data = {
         "user_id": user_id,
         "title": title,
         "author": author if author else None,
         "isbn": isbn if isbn else None,
         "reading_type": reading_type,
-        "length_pages": length_pages,
+        "length_pages": parsed_length_pages,
         "length_duration": length_duration if length_duration else None,
         "status": status,
-        "progress_fraction": progress_fraction,
+        "progress_fraction": parsed_progress_fraction,
         "notes": notes if notes else None,
         "pause_reason": pause_reason if pause_reason else None,
         "series_info": series_info if series_info else None
@@ -356,10 +371,10 @@ async def update_reading_entry(
     author: Optional[str] = Form(None),
     isbn: Optional[str] = Form(None),
     reading_type: str = Form("PHYSICAL_BOOK"),
-    length_pages: Optional[int] = Form(None),
+    length_pages: Optional[str] = Form(None),
     length_duration: Optional[str] = Form(None),
     status: str = Form("PENDING"),
-    progress_fraction: Optional[float] = Form(None),
+    progress_fraction: Optional[str] = Form(None),
     started_date: Optional[str] = Form(None),
     completed_date: Optional[str] = Form(None),
     paused_date: Optional[str] = Form(None),
@@ -372,16 +387,31 @@ async def update_reading_entry(
     if not entry:
         raise HTTPException(status_code=404, detail="Reading entry not found")
     
+    # Parse numeric fields properly, handling empty strings
+    parsed_length_pages = None
+    if length_pages and length_pages.strip():
+        try:
+            parsed_length_pages = int(length_pages)
+        except ValueError:
+            parsed_length_pages = None
+    
+    parsed_progress_fraction = None
+    if progress_fraction and progress_fraction.strip():
+        try:
+            parsed_progress_fraction = float(progress_fraction)
+        except ValueError:
+            parsed_progress_fraction = None
+
     # Update fields
     entry.user_id = user_id
     entry.title = title
     entry.author = author if author else None
     entry.isbn = isbn if isbn else None
     entry.reading_type = reading_type
-    entry.length_pages = length_pages
+    entry.length_pages = parsed_length_pages
     entry.length_duration = length_duration if length_duration else None
     entry.status = status
-    entry.progress_fraction = progress_fraction
+    entry.progress_fraction = parsed_progress_fraction
     entry.notes = notes if notes else None
     entry.pause_reason = pause_reason if pause_reason else None
     entry.series_info = series_info if series_info else None

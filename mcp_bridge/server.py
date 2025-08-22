@@ -497,7 +497,45 @@ async def edit_entry(
     user_name: Optional[str] = None,
     title: Optional[str] = None,
     status: Optional[str] = None,
-    **kwargs
+    # Reading fields
+    author: Optional[str] = None,
+    isbn: Optional[str] = None,
+    reading_type: Optional[str] = None,
+    length_pages: Optional[str] = None,
+    length_duration: Optional[str] = None,
+    progress_fraction: Optional[str] = None,
+    notes: Optional[str] = None,
+    pause_reason: Optional[str] = None,
+    series_info: Optional[str] = None,
+    # Drawing fields
+    subject: Optional[str] = None,
+    medium: Optional[str] = None,
+    context: Optional[str] = None,
+    location: Optional[str] = None,
+    duration_hours: Optional[str] = None,
+    sessions_count: Optional[str] = None,
+    process_description: Optional[str] = None,
+    technical_notes: Optional[str] = None,
+    materials_count: Optional[str] = None,
+    complexity_level: Optional[str] = None,
+    completion_notes: Optional[str] = None,
+    continuation_plans: Optional[str] = None,
+    reference_link: Optional[str] = None,
+    # Fitness fields
+    activity_type: Optional[str] = None,
+    description: Optional[str] = None,
+    duration_minutes: Optional[str] = None,
+    distance_km: Optional[str] = None,
+    intensity_level: Optional[str] = None,
+    achievements: Optional[str] = None,
+    next_goals: Optional[str] = None,
+    # Additional fitness fields
+    calories_burned: Optional[str] = None,
+    heart_rate_avg: Optional[str] = None,
+    heart_rate_max: Optional[str] = None,
+    perceived_effort: Optional[str] = None,
+    weather: Optional[str] = None,
+    equipment_used: Optional[str] = None
 ) -> str:
     """Edit an existing progress entry
     
@@ -507,7 +545,6 @@ async def edit_entry(
         user_name: Optional - verify entry belongs to this user
         title: Optional - new title
         status: Optional - new status
-        **kwargs: Other fields to update (varies by category)
         
     Reading fields: author, isbn, reading_type, length_pages, length_duration, 
                    progress_fraction, notes, pause_reason, series_info
@@ -515,7 +552,8 @@ async def edit_entry(
                    process_description, technical_notes, materials_count, complexity_level,
                    completion_notes, continuation_plans, reference_link
     Fitness fields: activity_type, description, duration_minutes, distance_km,
-                   intensity_level, location, notes, achievements, next_goals
+                   intensity_level, notes, achievements, next_goals, calories_burned,
+                   heart_rate_avg, heart_rate_max, perceived_effort, weather, equipment_used
     """
     try:
         # Validate category
@@ -546,8 +584,32 @@ async def edit_entry(
         if status is not None:
             update_data["status"] = status
         
-        # Add category-specific fields from kwargs
-        for field, value in kwargs.items():
+        # Collect all possible field parameters
+        all_fields = {
+            # Reading fields
+            'author': author, 'isbn': isbn, 'reading_type': reading_type,
+            'length_pages': length_pages, 'length_duration': length_duration,
+            'progress_fraction': progress_fraction, 'notes': notes,
+            'pause_reason': pause_reason, 'series_info': series_info,
+            # Drawing fields  
+            'subject': subject, 'medium': medium, 'context': context,
+            'location': location, 'duration_hours': duration_hours,
+            'sessions_count': sessions_count, 'process_description': process_description,
+            'technical_notes': technical_notes, 'materials_count': materials_count,
+            'complexity_level': complexity_level, 'completion_notes': completion_notes,
+            'continuation_plans': continuation_plans, 'reference_link': reference_link,
+            # Fitness fields
+            'activity_type': activity_type, 'description': description,
+            'duration_minutes': duration_minutes, 'distance_km': distance_km,
+            'intensity_level': intensity_level, 'achievements': achievements,
+            'next_goals': next_goals, 'calories_burned': calories_burned,
+            'heart_rate_avg': heart_rate_avg, 'heart_rate_max': heart_rate_max,
+            'perceived_effort': perceived_effort, 'weather': weather,
+            'equipment_used': equipment_used
+        }
+        
+        # Add category-specific fields
+        for field, value in all_fields.items():
             if value is not None:
                 # Handle numeric conversions
                 if field in ['length_pages', 'length_duration', 'sessions_count', 'materials_count', 'calories_burned', 'heart_rate_avg', 'heart_rate_max', 'perceived_effort']:
@@ -555,7 +617,7 @@ async def edit_entry(
                         update_data[field] = int(value)
                     except (ValueError, TypeError):
                         return f"❌ Error: {field} must be a valid integer, got '{value}'"
-                elif field in ['progress_fraction', 'duration_hours', 'duration_minutes', 'planned_duration', 'distance_km']:
+                elif field in ['progress_fraction', 'duration_hours', 'duration_minutes', 'distance_km']:
                     try:
                         float_value = float(value)
                         if field == 'progress_fraction' and not (0.0 <= float_value <= 1.0):

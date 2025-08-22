@@ -39,7 +39,7 @@
     <div class="form-grid">
         <div class="form-group">
             <label for="reading_type" class="form-label">Type</label>
-            <select name="reading_type" id="reading_type" class="form-select">
+            <select name="reading_type" id="reading_type" class="form-select" onchange="toggleLengthFields()">
                 <option value="PHYSICAL_BOOK" {% if entry and entry.reading_type and entry.reading_type.name == 'PHYSICAL_BOOK' %}selected{% endif %}>📚 Physical Book</option>
                 <option value="AUDIOBOOK" {% if entry and entry.reading_type and entry.reading_type.name == 'AUDIOBOOK' %}selected{% endif %}>🎧 Audiobook</option>
                 <option value="EBOOK" {% if entry and entry.reading_type and entry.reading_type.name == 'EBOOK' %}selected{% endif %}>📱 E-book</option>
@@ -59,14 +59,14 @@
             </select>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="length_pages_group">
             <label for="length_pages" class="form-label">Length (pages)</label>
             <input type="number" name="length_pages" id="length_pages" class="form-input"
                    placeholder="240"
                    value="{{ entry.length_pages if entry and entry.length_pages else '' }}">
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="length_duration_group">
             <label for="length_duration" class="form-label">Duration (for audiobooks)</label>
             <input type="text" name="length_duration" id="length_duration" class="form-input"
                    placeholder="2h 34m"
@@ -131,3 +131,30 @@
         </div>
     </div>
 </div>
+
+<script>
+function toggleLengthFields() {
+    const readingType = document.getElementById('reading_type').value;
+    const pagesGroup = document.getElementById('length_pages_group');
+    const durationGroup = document.getElementById('length_duration_group');
+    const pagesInput = document.getElementById('length_pages');
+    const durationInput = document.getElementById('length_duration');
+    
+    if (readingType === 'AUDIOBOOK') {
+        // For audiobooks, show duration and hide pages
+        pagesGroup.style.display = 'none';
+        durationGroup.style.display = 'block';
+        pagesInput.value = '';  // Clear pages field
+    } else {
+        // For other types, show pages and hide duration
+        pagesGroup.style.display = 'block';
+        durationGroup.style.display = 'none';
+        durationInput.value = '';  // Clear duration field
+    }
+}
+
+// Initialize the form state when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    toggleLengthFields();
+});
+</script>
