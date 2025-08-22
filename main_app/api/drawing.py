@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, File, UploadFile, Form
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from datetime import datetime
 import os
 import shutil
@@ -22,19 +22,22 @@ class DrawingEntryCreate(BaseModel):
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     duration_hours: Optional[float] = None
-    sessions_count: Optional[int] = None
     process_description: Optional[str] = None
     template_used: Optional[str] = None
     assistance_level: Optional[str] = None
     technical_notes: Optional[str] = None
-    materials_count: Optional[int] = None
-    complexity_level: Optional[str] = None
     status: DrawingStatus = DrawingStatus.PLANNED
     completion_notes: Optional[str] = None
     continuation_plans: Optional[str] = None
     reference_link: Optional[str] = None
     image_url: Optional[str] = None
     image_filename: Optional[str] = None
+    
+    @validator('duration_hours', pre=True)
+    def parse_duration_hours(cls, v):
+        if v == "" or v is None:
+            return None
+        return float(v)
 
 class DrawingEntryUpdate(BaseModel):
     title: Optional[str] = None
@@ -45,13 +48,10 @@ class DrawingEntryUpdate(BaseModel):
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
     duration_hours: Optional[float] = None
-    sessions_count: Optional[int] = None
     process_description: Optional[str] = None
     template_used: Optional[str] = None
     assistance_level: Optional[str] = None
     technical_notes: Optional[str] = None
-    materials_count: Optional[int] = None
-    complexity_level: Optional[str] = None
     status: Optional[DrawingStatus] = None
     completion_notes: Optional[str] = None
     continuation_plans: Optional[str] = None
@@ -70,13 +70,10 @@ class DrawingEntryResponse(BaseModel):
     start_date: Optional[datetime]
     end_date: Optional[datetime]
     duration_hours: Optional[float]
-    sessions_count: Optional[int]
     process_description: Optional[str]
     template_used: Optional[str]
     assistance_level: Optional[str]
     technical_notes: Optional[str]
-    materials_count: Optional[int]
-    complexity_level: Optional[str]
     status: DrawingStatus
     completion_notes: Optional[str]
     continuation_plans: Optional[str]

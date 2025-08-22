@@ -19,6 +19,24 @@ class ReadingFormSchema(BaseModel):
     pause_reason: Optional[str] = Field(None, max_length=500)
     series_info: Optional[str] = Field(None, max_length=500)
     
+    @validator('length_pages', pre=True)
+    def parse_length_pages(cls, v):
+        if v == "" or v is None:
+            return None
+        return int(v)
+    
+    @validator('length_duration', pre=True)
+    def parse_length_duration(cls, v):
+        if v == "" or v is None:
+            return None
+        return int(v)
+    
+    @validator('progress_fraction', pre=True)
+    def parse_progress_fraction(cls, v):
+        if v == "" or v is None:
+            return None
+        return float(v)
+    
     @validator('reading_type')
     def validate_reading_type(cls, v):
         valid_types = [t.value for t in ReadingType]
@@ -57,6 +75,24 @@ class DrawingFormSchema(BaseModel):
             raise ValueError(f'Invalid medium. Must be one of: {valid_mediums}')
         return v
     
+    @validator('duration_hours', pre=True)
+    def parse_duration_hours(cls, v):
+        if v == "" or v is None:
+            return None
+        return float(v)
+    
+    @validator('sessions_count', pre=True)
+    def parse_sessions_count(cls, v):
+        if v == "" or v is None:
+            return None
+        return int(v)
+    
+    @validator('materials_count', pre=True)
+    def parse_materials_count(cls, v):
+        if v == "" or v is None:
+            return None
+        return int(v)
+    
     @validator('status')
     def validate_status(cls, v):
         valid_statuses = [s.value for s in DrawingStatus]
@@ -76,6 +112,18 @@ class FitnessFormSchema(BaseModel):
     location: Optional[str] = Field(None, max_length=200)
     status: str = Field("planned")
     notes: Optional[str] = Field(None, max_length=2000)
+    
+    @validator('duration_minutes', pre=True)
+    def parse_duration_minutes(cls, v):
+        if v == "" or v is None:
+            return None
+        return float(v)
+    
+    @validator('distance_km', pre=True)
+    def parse_distance_km(cls, v):
+        if v == "" or v is None:
+            return None
+        return float(v)
     
     @validator('activity_type')
     def validate_activity_type(cls, v):

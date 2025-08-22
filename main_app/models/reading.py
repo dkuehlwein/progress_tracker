@@ -30,12 +30,12 @@ class ReadingEntry(Base):
     isbn = Column(String, index=True)  # Index for ISBN lookups
     
     # Type and length
-    reading_type = Column(Enum(ReadingType), default=ReadingType.PHYSICAL_BOOK, index=True)
+    reading_type = Column(Enum(ReadingType, values_callable=lambda obj: [e.value for e in obj]), default=ReadingType.PHYSICAL_BOOK, index=True)
     length_pages = Column(Integer)
     length_duration = Column(Integer)  # For audiobooks: duration in minutes
     
     # Progress tracking
-    status = Column(Enum(ReadingStatus), default=ReadingStatus.PENDING, index=True)  # Index for status filtering
+    status = Column(Enum(ReadingStatus, values_callable=lambda obj: [e.value for e in obj]), default=ReadingStatus.PENDING, index=True)  # Index for status filtering
     progress_fraction = Column(Float)  # 0.0 to 1.0 (e.g., 2/3 = 0.67)
     
     # Dates - indexed for date range queries

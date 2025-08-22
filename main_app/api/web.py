@@ -241,11 +241,8 @@ async def add_drawing_web(
     medium: Optional[str] = Form(None),
     context: Optional[str] = Form(None),
     duration_hours: Optional[float] = Form(None),
-    sessions_count: Optional[int] = Form(None),
-    materials_count: Optional[int] = Form(None),
     status: str = Form("planned"),
     technical_notes: Optional[str] = Form(None),
-    complexity_level: Optional[str] = Form(None),
     reference_link: Optional[str] = Form(None),
     image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
@@ -281,11 +278,8 @@ async def add_drawing_web(
         "medium": medium if medium else None,
         "context": context if context else None,
         "duration_hours": duration_hours,
-        "sessions_count": sessions_count,
-        "materials_count": materials_count,
         "status": status,
         "technical_notes": technical_notes if technical_notes else None,
-        "complexity_level": complexity_level if complexity_level else None,
         "reference_link": reference_link if reference_link else None,
         "image_url": image_url,
         "image_filename": image_filename
@@ -502,8 +496,8 @@ async def edit_drawing_form(request: Request, entry_id: int, db: Session = Depen
         "request": request,
         "entry": entry,
         "users": users,
-        "drawing_statuses": [status.name for status in DrawingStatus],
-        "drawing_mediums": [medium.name for medium in DrawingMedium]
+        "drawing_statuses": [status.value for status in DrawingStatus],
+        "drawing_mediums": [medium.value for medium in DrawingMedium]
     })
 
 @router.post("/web/drawing/edit/{entry_id}")
@@ -515,16 +509,42 @@ async def update_drawing_entry(
     medium: Optional[str] = Form(None),
     context: Optional[str] = Form(None),
     duration_hours: Optional[float] = Form(None),
-    sessions_count: Optional[int] = Form(None),
-    materials_count: Optional[int] = Form(None),
     status: str = Form("PLANNED"),
     technical_notes: Optional[str] = Form(None),
-    complexity_level: Optional[str] = Form(None),
+    reference_link: Optional[str] = Form(None),
+    image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db)
 ):
     entry = db.query(DrawingEntry).filter(DrawingEntry.id == entry_id).first()
     if not entry:
         raise HTTPException(status_code=404, detail="Drawing entry not found")
+    
+    # Handle image upload if provided
+    if image and image.filename and image.content_type.startswith('image/'):
+        # Delete old image if it exists
+        if entry.image_filename:
+            old_image_path = Path("web/static/uploads") / entry.image_filename
+            if old_image_path.exists():
+                old_image_path.unlink()
+        
+        # Create uploads directory if it doesn't exist
+        upload_dir = Path("web/static/uploads")
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Generate unique filename
+        file_extension = image.filename.split('.')[-1] if '.' in image.filename else 'jpg'
+        unique_filename = f"{uuid.uuid4()}.{file_extension}"
+        file_path = upload_dir / unique_filename
+        
+        # Save file
+        try:
+            with open(file_path, "wb") as buffer:
+                shutil.copyfileobj(image.file, buffer)
+            
+            entry.image_url = f"/static/uploads/{unique_filename}"
+            entry.image_filename = unique_filename
+        except Exception as e:
+            print(f"Failed to save image: {e}")
     
     # Update fields
     entry.user_id = user_id
@@ -533,11 +553,9 @@ async def update_drawing_entry(
     entry.medium = medium if medium else None
     entry.context = context if context else None
     entry.duration_hours = duration_hours
-    entry.sessions_count = sessions_count
-    entry.materials_count = materials_count
     entry.status = status
     entry.technical_notes = technical_notes if technical_notes else None
-    entry.complexity_level = complexity_level if complexity_level else None
+    entry.reference_link = reference_link if reference_link else None
     
     # Update dates
     current_time = datetime.now()

@@ -31,7 +31,7 @@ class FitnessEntry(Base):
     
     # Basic information
     title = Column(String, nullable=False, index=True)  # Index for title searches
-    activity_type = Column(Enum(FitnessType), index=True)  # Index for activity type filtering
+    activity_type = Column(Enum(FitnessType, values_callable=lambda obj: [e.value for e in obj]), index=True)  # Index for activity type filtering
     description = Column(Text)
     
     # Time and duration
@@ -55,7 +55,7 @@ class FitnessEntry(Base):
     equipment_used = Column(String)
     
     # Progress and notes
-    status = Column(Enum(FitnessStatus), default=FitnessStatus.PLANNED, index=True)  # Index for status filtering
+    status = Column(Enum(FitnessStatus, values_callable=lambda obj: [e.value for e in obj]), default=FitnessStatus.PLANNED, index=True)  # Index for status filtering
     notes = Column(Text)
     achievements = Column(Text)  # Personal records, milestones
     next_goals = Column(Text)

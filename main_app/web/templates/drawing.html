@@ -102,9 +102,6 @@
                             {% else %}
                                 -
                             {% endif %}
-                            {% if entry.sessions_count %}
-                                <br><small>{{ entry.sessions_count }} sessions</small>
-                            {% endif %}
                         </td>
                         <td>
                             {% if entry.image_url %}
@@ -123,23 +120,17 @@
                             </div>
                         </td>
                     </tr>
-                    {% if entry.context or entry.technical_notes or entry.materials_count or entry.complexity_level %}
+                    {% if entry.context or entry.technical_notes or entry.reference_link %}
                     <tr class="details-row" style="display: none;" id="details-{{ entry.id }}">
                         <td colspan="8">
                             {% if entry.context %}
-                            <p><strong>Context:</strong> {{ entry.context }}</p>
-                            {% endif %}
-                            {% if entry.materials_count %}
-                            <p><strong>Materials:</strong> {{ entry.materials_count }} pieces</p>
-                            {% endif %}
-                            {% if entry.complexity_level %}
-                            <p><strong>Complexity:</strong> {{ entry.complexity_level.title() }}</p>
+                            <p><strong>Context (User):</strong> {{ entry.context }}</p>
                             {% endif %}
                             {% if entry.technical_notes %}
-                            <p><strong>Technical Notes:</strong> {{ entry.technical_notes }}</p>
+                            <p><strong>Technical Notes (AI Analysis):</strong> {{ entry.technical_notes }}</p>
                             {% endif %}
                             {% if entry.reference_link %}
-                            <p><strong>Reference:</strong> <a href="{{ entry.reference_link }}" target="_blank">{{ entry.reference_link }}</a></p>
+                            <p><strong>Reference Link:</strong> <a href="{{ entry.reference_link }}" target="_blank">{{ entry.reference_link }}</a></p>
                             {% endif %}
                         </td>
                     </tr>

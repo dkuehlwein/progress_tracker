@@ -29,7 +29,7 @@ class DrawingEntry(Base):
     # Basic information
     title = Column(String, nullable=False, index=True)  # Index for title searches
     subject = Column(String, index=True)  # "Rainbow snake design", "Nature composition"
-    medium = Column(Enum(DrawingMedium), index=True)  # Index for medium filtering
+    medium = Column(Enum(DrawingMedium, values_callable=lambda obj: [e.value for e in obj]), index=True)  # Index for medium filtering
     
     # Context and setting
     context = Column(Text)  # "Multi-day home project, working alongside almost-8-year-old peer"
@@ -39,7 +39,6 @@ class DrawingEntry(Base):
     start_date = Column(DateTime, index=True)
     end_date = Column(DateTime, index=True)
     duration_hours = Column(Float)  # Total time spent
-    sessions_count = Column(Integer)  # Number of work sessions
     
     # Process and technique
     process_description = Column(Text)  # "1:1 template copying from laptop screen"
@@ -47,12 +46,10 @@ class DrawingEntry(Base):
     assistance_level = Column(String)  # "occasional assistance", "significant parental support"
     
     # Technical details
-    technical_notes = Column(Text)  # Complex pattern matching, color gradient management, etc.
-    materials_count = Column(Integer)  # Number of beads, etc.
-    complexity_level = Column(String, index=True)  # "advanced", "beginner", "intermediate" - indexed for filtering
+    technical_notes = Column(Text)  # AI analysis of drawing techniques, composition, development
     
     # Progress and completion
-    status = Column(Enum(DrawingStatus), default=DrawingStatus.PLANNED, index=True)  # Index for status filtering
+    status = Column(Enum(DrawingStatus, values_callable=lambda obj: [e.value for e in obj]), default=DrawingStatus.PLANNED, index=True)  # Index for status filtering
     completion_notes = Column(Text)
     continuation_plans = Column(Text)  # "Expressed intention to continue work next day"
     

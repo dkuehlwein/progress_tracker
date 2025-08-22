@@ -579,11 +579,9 @@ async def add_drawing_entry(
     medium: Optional[str] = None,
     context: Optional[str] = None,
     duration_hours: Optional[float] = None,
-    sessions_count: Optional[int] = None,
-    materials_count: Optional[int] = None,
     status: str = "planned",
     technical_notes: Optional[str] = None,
-    complexity_level: Optional[str] = None
+    reference_link: Optional[str] = None
 ) -> str:
     """Add a new drawing progress entry
     
@@ -592,13 +590,11 @@ async def add_drawing_entry(
         title: Drawing project title
         subject: What was drawn (e.g., "Rainbow snake design")
         medium: Medium used (colored_pencils, crayons, markers, watercolor, digital, beads, mixed_media)
-        context: Context of the work (e.g., "Multi-day home project")
+        context: User-provided context of the work (e.g., "Multi-day home project")
         duration_hours: Total time spent in hours
-        sessions_count: Number of work sessions
-        materials_count: Number of materials used (e.g., 2000+ beads)
         status: Current status (planned, in_progress, completed, abandoned, continued_next_day)
-        technical_notes: Technical achievements and notes
-        complexity_level: Complexity (beginner, intermediate, advanced)
+        technical_notes: AI analysis of technical achievements and development
+        reference_link: Link to reference image or external resource
     """
     try:
         # Get user
@@ -614,11 +610,9 @@ async def add_drawing_entry(
             "medium": medium,
             "context": context,
             "duration_hours": duration_hours,
-            "sessions_count": sessions_count,
-            "materials_count": materials_count,
             "status": status,
             "technical_notes": technical_notes,
-            "complexity_level": complexity_level
+            "reference_link": reference_link
         }
         
         # Set dates based on status
