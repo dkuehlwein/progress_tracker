@@ -97,6 +97,165 @@ class FitnessEntry(BaseModel):
     next_goals: Optional[str] = None
 
 # Helper functions
+def format_date(date_str: Optional[str]) -> Optional[str]:
+    """Format ISO datetime string to just date part"""
+    if not date_str:
+        return None
+    try:
+        return date_str.split('T')[0]
+    except:
+        return date_str
+
+def validate_and_convert_numeric(value: str, field_name: str, value_type: str = "int", min_val: Optional[float] = None, max_val: Optional[float] = None) -> tuple[Optional[float], Optional[str]]:
+    """Validate and convert string to numeric type with validation
+    Returns: (converted_value, error_message)
+    """
+    if not value or not value.strip():
+        return None, None
+    
+    try:
+        if value_type == "int":
+            converted = int(value)
+        else:
+            converted = float(value)
+        
+        if min_val is not None and converted < min_val:
+            return None, f"❌ Error: {field_name} must be >= {min_val}, got {converted}"
+        if max_val is not None and converted > max_val:
+            return None, f"❌ Error: {field_name} must be <= {max_val}, got {converted}"
+        
+        return converted, None
+    except (ValueError, TypeError):
+        return None, f"❌ Error: {field_name} must be a valid {value_type}, got '{value}'"
+
+def validate_and_format_date(date_str: Optional[str], field_name: str, time_suffix: str = "T00:00:00") -> tuple[Optional[str], Optional[str]]:
+    """Validate YYYY-MM-DD format and add time suffix
+    Returns: (formatted_date, error_message)
+    """
+    if not date_str or not date_str.strip():
+        return None, None
+    
+    try:
+        datetime.strptime(date_str, '%Y-%m-%d')
+        return date_str + time_suffix, None
+    except ValueError:
+        return None, f"❌ Error: {field_name} must be in YYYY-MM-DD format (e.g., '2024-08-15'), got '{date_str}'"
+
+def format_reading_entry(entry: Dict, entry_id: str, user_name: str) -> str:
+    """Format a reading entry for list display"""
+    title = entry.get('title', 'Untitled')
+    status = entry.get('status', 'Unknown')
+    author = entry.get('author', '')
+    author_str = f" by {author}" if author else ""
+    
+    # Build type and length info
+    reading_type = entry.get('reading_type', '')
+    length_pages = entry.get('length_pages')
+    length_duration = entry.get('length_duration')
+    
+    type_length_info = []
+    if reading_type:
+        type_length_info.append(reading_type.replace('_', ' ').title())
+    if length_pages:
+        type_length_info.append(f"{length_pages} pages")
+    elif length_duration:
+        hours = length_duration // 60
+        minutes = length_duration % 60
+        if hours > 0:
+            type_length_info.append(f"{hours}h {minutes}m" if minutes > 0 else f"{hours}h")
+        else:
+            type_length_info.append(f"{minutes}m")
+    
+    type_length_str = f" ({', '.join(type_length_info)})" if type_length_info else ""
+    
+    # Build date info
+    started_date = format_date(entry.get('started_date'))
+    completed_date = format_date(entry.get('completed_date'))
+    paused_date = format_date(entry.get('paused_date'))
+    
+    date_info = []
+    if started_date:
+        date_info.append(f"Started: {started_date}")
+    if completed_date:
+        date_info.append(f"Completed: {completed_date}")
+    if paused_date:
+        date_info.append(f"Paused: {paused_date}")
+    
+    date_str = f" | {' | '.join(date_info)}" if date_info else ""
+    
+    # Build notes info
+    notes = entry.get('notes', '')
+    pause_reason = entry.get('pause_reason', '')
+    notes_info = []
+    if notes:
+        notes_info.append(f"Notes: {notes[:50]}{'...' if len(notes) > 50 else ''}")
+    if pause_reason:
+        notes_info.append(f"Pause reason: {pause_reason[:40]}{'...' if len(pause_reason) > 40 else ''}")
+    
+    notes_str = f"\n    {' | '.join(notes_info)}" if notes_info else ""
+    
+    return f"  • [{entry_id}] {title}{author_str}{type_length_str} [{status}] - {user_name}{date_str}{notes_str}"
+
+def format_drawing_entry(entry: Dict, entry_id: str, user_name: str) -> str:
+    """Format a drawing entry for list display"""
+    title = entry.get('title', 'Untitled')
+    status = entry.get('status', 'Unknown')
+    subject = entry.get('subject', '')
+    subject_str = f" ({subject})" if subject else ""
+    
+    # Build date info
+    started_date = format_date(entry.get('start_date'))
+    completed_date = format_date(entry.get('end_date'))
+    
+    date_info = []
+    if started_date:
+        date_info.append(f"Started: {started_date}")
+    if completed_date:
+        date_info.append(f"Completed: {completed_date}")
+    
+    date_str = f" | {' | '.join(date_info)}" if date_info else ""
+    
+    # Build notes info
+    notes = entry.get('notes', '')
+    completion_notes = entry.get('completion_notes', '')
+    notes_info = []
+    if notes:
+        notes_info.append(f"Notes: {notes[:50]}{'...' if len(notes) > 50 else ''}")
+    if completion_notes:
+        notes_info.append(f"Completion: {completion_notes[:40]}{'...' if len(completion_notes) > 40 else ''}")
+    
+    notes_str = f"\n    {' | '.join(notes_info)}" if notes_info else ""
+    
+    return f"  • [{entry_id}] {title}{subject_str} [{status}] - {user_name}{date_str}{notes_str}"
+
+def format_fitness_entry(entry: Dict, entry_id: str, user_name: str) -> str:
+    """Format a fitness entry for list display"""
+    title = entry.get('title', 'Untitled')
+    status = entry.get('status', 'Unknown')
+    activity_type = entry.get('activity_type', '')
+    type_str = f" ({activity_type})" if activity_type else ""
+    
+    # Build date info
+    activity_date = format_date(entry.get('activity_date'))
+    date_info = []
+    if activity_date:
+        date_info.append(f"Date: {activity_date}")
+    
+    date_str = f" | {' | '.join(date_info)}" if date_info else ""
+    
+    # Build notes info
+    notes = entry.get('notes', '')
+    achievements = entry.get('achievements', '')
+    notes_info = []
+    if notes:
+        notes_info.append(f"Notes: {notes[:50]}{'...' if len(notes) > 50 else ''}")
+    if achievements:
+        notes_info.append(f"Achievements: {achievements[:40]}{'...' if len(achievements) > 40 else ''}")
+    
+    notes_str = f"\n    {' | '.join(notes_info)}" if notes_info else ""
+    
+    return f"  • [{entry_id}] {title}{type_str} [{status}] - {user_name}{date_str}{notes_str}"
+
 async def api_request(method: str, endpoint: str, data: Optional[Dict] = None) -> Dict:
     """Make HTTP request to the main app API with proper error handling"""
     url = f"{MAIN_APP_URL}{endpoint}"
@@ -227,29 +386,18 @@ async def add_reading_entry(
         if not user:
             return f"User '{user_name}' not found. Available users: {', '.join([u.name for u in await get_users()])}"
         
-        # Convert string inputs to proper types
-        length_pages_int = None
-        if length_pages is not None:
-            try:
-                length_pages_int = int(length_pages)
-            except (ValueError, TypeError):
-                return f"❌ Error: length_pages must be a valid integer, got '{length_pages}'"
+        # Convert and validate inputs
+        length_pages_int, error = validate_and_convert_numeric(length_pages, "length_pages", "int")
+        if error:
+            return error
         
-        length_duration_int = None
-        if length_duration is not None:
-            try:
-                length_duration_int = int(length_duration)
-            except (ValueError, TypeError):
-                return f"❌ Error: length_duration must be a valid integer, got '{length_duration}'"
+        length_duration_int, error = validate_and_convert_numeric(length_duration, "length_duration", "int")
+        if error:
+            return error
         
-        progress_fraction_float = None
-        if progress_fraction is not None:
-            try:
-                progress_fraction_float = float(progress_fraction)
-                if not (0.0 <= progress_fraction_float <= 1.0):
-                    return f"❌ Error: progress_fraction must be between 0.0 and 1.0, got {progress_fraction_float}"
-            except (ValueError, TypeError):
-                return f"❌ Error: progress_fraction must be a valid decimal number, got '{progress_fraction}'"
+        progress_fraction_float, error = validate_and_convert_numeric(progress_fraction, "progress_fraction", "float", 0.0, 1.0)
+        if error:
+            return error
         
         # Prepare data
         entry_data = {
@@ -267,30 +415,24 @@ async def add_reading_entry(
             "series_info": series_info
         }
         
-        # Add dates from parameters or auto-set based on status
+        # Validate and add dates from parameters
         if started_date:
-            try:
-                # Validate YYYY-MM-DD format and convert to start of day
-                datetime.strptime(started_date, '%Y-%m-%d')
-                entry_data["started_date"] = started_date + 'T00:00:00'
-            except ValueError:
-                return f"❌ Error: started_date must be in YYYY-MM-DD format (e.g., '2024-08-15'), got '{started_date}'"
+            formatted_date, error = validate_and_format_date(started_date, "started_date", "T00:00:00")
+            if error:
+                return error
+            entry_data["started_date"] = formatted_date
         
         if completed_date:
-            try:
-                # Validate YYYY-MM-DD format and convert to end of day
-                datetime.strptime(completed_date, '%Y-%m-%d')
-                entry_data["completed_date"] = completed_date + 'T23:59:59'
-            except ValueError:
-                return f"❌ Error: completed_date must be in YYYY-MM-DD format (e.g., '2024-08-15'), got '{completed_date}'"
+            formatted_date, error = validate_and_format_date(completed_date, "completed_date", "T23:59:59")
+            if error:
+                return error
+            entry_data["completed_date"] = formatted_date
         
         if paused_date:
-            try:
-                # Validate YYYY-MM-DD format and convert to noon
-                datetime.strptime(paused_date, '%Y-%m-%d')
-                entry_data["paused_date"] = paused_date + 'T12:00:00'
-            except ValueError:
-                return f"❌ Error: paused_date must be in YYYY-MM-DD format (e.g., '2024-08-15'), got '{paused_date}'"
+            formatted_date, error = validate_and_format_date(paused_date, "paused_date", "T12:00:00")
+            if error:
+                return error
+            entry_data["paused_date"] = formatted_date
         
         # Auto-set dates based on status if not manually provided
         current_time = datetime.now().isoformat()
@@ -803,6 +945,13 @@ async def list_entries(
 ) -> str:
     """List progress entries with optional filtering
     
+    Shows detailed information including:
+    - Entry ID, title, status, and user
+    - For reading: author, type (audiobook/ebook/etc), length (pages or duration)
+    - Start dates, completion dates, and pause/abandonment dates
+    - Notes and pause/abandonment reasons (truncated if long)
+    - Category-specific details (achievements for fitness, completion notes for drawing, etc.)
+    
     Args:
         user_name: Filter by username (daniel or simon)
         category: Filter by category (reading, drawing, fitness)
@@ -836,27 +985,21 @@ async def list_entries(
                 if limited_data:
                     results.append(f"\n📚 {cat.title()} Entries:")
                     for entry in limited_data:
-                        title = entry.get('title', 'Untitled')
-                        status = entry.get('status', 'Unknown')
                         user_id = entry.get('user_id')
                         
                         # Get user name
                         users = await get_users()
                         user_name = next((u.display_name for u in users if u.id == user_id), "Unknown User")
                         
-                        # Format entry based on type
+                        # Format entry using category-specific formatters
+                        entry_id = str(entry.get('id', 'N/A'))
+                        
                         if cat == "reading":
-                            author = entry.get('author', '')
-                            author_str = f" by {author}" if author else ""
-                            results.append(f"  • {title}{author_str} [{status}] - {user_name}")
+                            results.append(format_reading_entry(entry, entry_id, user_name))
                         elif cat == "drawing":
-                            subject = entry.get('subject', '')
-                            subject_str = f" ({subject})" if subject else ""
-                            results.append(f"  • {title}{subject_str} [{status}] - {user_name}")
+                            results.append(format_drawing_entry(entry, entry_id, user_name))
                         else:  # fitness
-                            activity_type = entry.get('activity_type', '')
-                            type_str = f" ({activity_type})" if activity_type else ""
-                            results.append(f"  • {title}{type_str} [{status}] - {user_name}")
+                            results.append(format_fitness_entry(entry, entry_id, user_name))
             except Exception as e:
                 results.append(f"  ❌ Error fetching {cat} entries: {str(e)}")
         
