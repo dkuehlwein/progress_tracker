@@ -10,6 +10,7 @@ from typing import Optional, List
 from database.config import get_db
 from models import User, ReadingEntry, DrawingEntry, FitnessEntry, ReadingStatus, DrawingStatus, FitnessStatus, ReadingType, DrawingMedium, FitnessType
 from datetime import datetime, timedelta
+from utils.validation import parse_optional_int, parse_optional_float, parse_optional_date, clean_optional_string
 
 router = APIRouter()
 templates = Jinja2Templates(directory="web/templates")
@@ -130,34 +131,19 @@ async def add_reading_web(
     series_info: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
-    # Parse numeric fields properly, handling empty strings
-    parsed_length_pages = None
-    if length_pages and length_pages.strip():
-        try:
-            parsed_length_pages = int(length_pages)
-        except ValueError:
-            parsed_length_pages = None
-    
-    parsed_progress_fraction = None
-    if progress_fraction and progress_fraction.strip():
-        try:
-            parsed_progress_fraction = float(progress_fraction)
-        except ValueError:
-            parsed_progress_fraction = None
-
     entry_data = {
         "user_id": user_id,
         "title": title,
-        "author": author if author else None,
-        "isbn": isbn if isbn else None,
+        "author": clean_optional_string(author),
+        "isbn": clean_optional_string(isbn),
         "reading_type": reading_type,
-        "length_pages": parsed_length_pages,
-        "length_duration": length_duration if length_duration else None,
+        "length_pages": parse_optional_int(length_pages),
+        "length_duration": clean_optional_string(length_duration),
         "status": status,
-        "progress_fraction": parsed_progress_fraction,
-        "notes": notes if notes else None,
-        "pause_reason": pause_reason if pause_reason else None,
-        "series_info": series_info if series_info else None
+        "progress_fraction": parse_optional_float(progress_fraction),
+        "notes": clean_optional_string(notes),
+        "pause_reason": clean_optional_string(pause_reason),
+        "series_info": clean_optional_string(series_info)
     }
     
     # Parse and add dates from form input (date-only format)
@@ -240,7 +226,7 @@ async def add_drawing_web(
     subject: Optional[str] = Form(None),
     medium: Optional[str] = Form(None),
     context: Optional[str] = Form(None),
-    duration_hours: Optional[float] = Form(None),
+    duration_hours: Optional[str] = Form(None),
     status: str = Form("planned"),
     start_date: Optional[str] = Form(None),
     end_date: Optional[str] = Form(None),
@@ -276,13 +262,13 @@ async def add_drawing_web(
     entry_data = {
         "user_id": user_id,
         "title": title,
-        "subject": subject if subject else None,
+        "subject": clean_optional_string(subject),
         "medium": medium if medium else None,
-        "context": context if context else None,
-        "duration_hours": duration_hours,
+        "context": clean_optional_string(context),
+        "duration_hours": parse_optional_float(duration_hours),
         "status": status,
-        "technical_notes": technical_notes if technical_notes else None,
-        "reference_link": reference_link if reference_link else None,
+        "technical_notes": clean_optional_string(technical_notes),
+        "reference_link": clean_optional_string(reference_link),
         "image_url": image_url,
         "image_filename": image_filename
     }
@@ -354,8 +340,8 @@ async def add_fitness_web(
     title: str = Form(...),
     activity_type: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
-    duration_minutes: Optional[float] = Form(None),
-    distance_km: Optional[float] = Form(None),
+    duration_minutes: Optional[str] = Form(None),
+    distance_km: Optional[str] = Form(None),
     intensity_level: Optional[str] = Form(None),
     location: Optional[str] = Form(None),
     status: str = Form("planned"),
@@ -365,14 +351,14 @@ async def add_fitness_web(
     entry_data = {
         "user_id": user_id,
         "title": title,
-        "activity_type": activity_type if activity_type else None,
-        "description": description if description else None,
-        "duration_minutes": duration_minutes,
-        "distance_km": distance_km,
-        "intensity_level": intensity_level if intensity_level else None,
-        "location": location if location else None,
+        "activity_type": clean_optional_string(activity_type),
+        "description": clean_optional_string(description),
+        "duration_minutes": parse_optional_float(duration_minutes),
+        "distance_km": parse_optional_float(distance_km),
+        "intensity_level": clean_optional_string(intensity_level),
+        "location": clean_optional_string(location),
         "status": status,
-        "notes": notes if notes else None
+        "notes": clean_optional_string(notes)
     }
     
     # Set activity date based on status
@@ -429,34 +415,19 @@ async def update_reading_entry(
     if not entry:
         raise HTTPException(status_code=404, detail="Reading entry not found")
     
-    # Parse numeric fields properly, handling empty strings
-    parsed_length_pages = None
-    if length_pages and length_pages.strip():
-        try:
-            parsed_length_pages = int(length_pages)
-        except ValueError:
-            parsed_length_pages = None
-    
-    parsed_progress_fraction = None
-    if progress_fraction and progress_fraction.strip():
-        try:
-            parsed_progress_fraction = float(progress_fraction)
-        except ValueError:
-            parsed_progress_fraction = None
-
     # Update fields
     entry.user_id = user_id
     entry.title = title
-    entry.author = author if author else None
-    entry.isbn = isbn if isbn else None
+    entry.author = clean_optional_string(author)
+    entry.isbn = clean_optional_string(isbn)
     entry.reading_type = reading_type
-    entry.length_pages = parsed_length_pages
-    entry.length_duration = length_duration if length_duration else None
+    entry.length_pages = parse_optional_int(length_pages)
+    entry.length_duration = clean_optional_string(length_duration)
     entry.status = status
-    entry.progress_fraction = parsed_progress_fraction
-    entry.notes = notes if notes else None
-    entry.pause_reason = pause_reason if pause_reason else None
-    entry.series_info = series_info if series_info else None
+    entry.progress_fraction = parse_optional_float(progress_fraction)
+    entry.notes = clean_optional_string(notes)
+    entry.pause_reason = clean_optional_string(pause_reason)
+    entry.series_info = clean_optional_string(series_info)
     
     # Parse and update dates from form input (date-only format)
     if started_date:
@@ -527,8 +498,10 @@ async def update_drawing_entry(
     subject: Optional[str] = Form(None),
     medium: Optional[str] = Form(None),
     context: Optional[str] = Form(None),
-    duration_hours: Optional[float] = Form(None),
+    duration_hours: Optional[str] = Form(None),
     status: str = Form(DrawingStatus.PLANNED.value),
+    start_date: Optional[str] = Form(None),
+    end_date: Optional[str] = Form(None),
     technical_notes: Optional[str] = Form(None),
     reference_link: Optional[str] = Form(None),
     image: Optional[UploadFile] = File(None),
@@ -568,22 +541,42 @@ async def update_drawing_entry(
     # Update fields
     entry.user_id = user_id
     entry.title = title
-    entry.subject = subject if subject else None
+    entry.subject = clean_optional_string(subject)
     entry.medium = medium if medium else None
-    entry.context = context if context else None
-    entry.duration_hours = duration_hours
+    entry.context = clean_optional_string(context)
+    entry.duration_hours = parse_optional_float(duration_hours)
     entry.status = status
-    entry.technical_notes = technical_notes if technical_notes else None
-    entry.reference_link = reference_link if reference_link else None
+    entry.technical_notes = clean_optional_string(technical_notes)
+    entry.reference_link = clean_optional_string(reference_link)
     
-    # Update dates
+    # Parse and update dates from form input (date-only format)
+    if start_date:
+        try:
+            # Parse YYYY-MM-DD format and set to start of day
+            entry.start_date = datetime.fromisoformat(start_date + 'T00:00:00')
+        except ValueError:
+            pass
+    else:
+        entry.start_date = None
+        
+    if end_date:
+        try:
+            # Parse YYYY-MM-DD format and set to end of day
+            entry.end_date = datetime.fromisoformat(end_date + 'T23:59:59')
+        except ValueError:
+            pass
+    else:
+        entry.end_date = None
+    
+    # Auto-set dates based on status if not manually provided
     current_time = datetime.now()
     if status == DrawingStatus.IN_PROGRESS.value and not entry.start_date:
         entry.start_date = current_time
     elif status == DrawingStatus.COMPLETED.value:
         if not entry.start_date:
             entry.start_date = current_time
-        entry.end_date = current_time
+        if not entry.end_date:
+            entry.end_date = current_time
     
     db.commit()
     return RedirectResponse(url="/web/drawing", status_code=303)
@@ -610,8 +603,8 @@ async def update_fitness_entry(
     title: str = Form(...),
     activity_type: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
-    duration_minutes: Optional[float] = Form(None),
-    distance_km: Optional[float] = Form(None),
+    duration_minutes: Optional[str] = Form(None),
+    distance_km: Optional[str] = Form(None),
     intensity_level: Optional[str] = Form(None),
     location: Optional[str] = Form(None),
     status: str = Form(FitnessStatus.PLANNED.value),
@@ -625,14 +618,14 @@ async def update_fitness_entry(
     # Update fields
     entry.user_id = user_id
     entry.title = title
-    entry.activity_type = activity_type if activity_type else None
-    entry.description = description if description else None
-    entry.duration_minutes = duration_minutes
-    entry.distance_km = distance_km
-    entry.intensity_level = intensity_level if intensity_level else None
-    entry.location = location if location else None
+    entry.activity_type = clean_optional_string(activity_type)
+    entry.description = clean_optional_string(description)
+    entry.duration_minutes = parse_optional_float(duration_minutes)
+    entry.distance_km = parse_optional_float(distance_km)
+    entry.intensity_level = clean_optional_string(intensity_level)
+    entry.location = clean_optional_string(location)
     entry.status = status
-    entry.notes = notes if notes else None
+    entry.notes = clean_optional_string(notes)
     
     # Update activity date
     current_time = datetime.now()

@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 from typing import Optional, Dict, Any
+from datetime import datetime, date
 from fastapi import HTTPException, UploadFile
 from pydantic import BaseModel, ValidationError
 from config import ALLOWED_IMAGE_EXTENSIONS, MAX_UPLOAD_SIZE
@@ -78,3 +79,40 @@ def sanitize_filename(filename: str) -> str:
         sanitized = name[:90] + ext
     
     return sanitized
+
+
+def parse_optional_int(value: Optional[str]) -> Optional[int]:
+    """Parse optional integer from form input, handling empty strings"""
+    if value is None or (isinstance(value, str) and value.strip() == ""):
+        return None
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return None
+
+
+def parse_optional_float(value: Optional[str]) -> Optional[float]:
+    """Parse optional float from form input, handling empty strings"""
+    if value is None or (isinstance(value, str) and value.strip() == ""):
+        return None
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return None
+
+
+def parse_optional_date(value: Optional[str]) -> Optional[date]:
+    """Parse optional date from form input (YYYY-MM-DD format)"""
+    if value is None or (isinstance(value, str) and value.strip() == ""):
+        return None
+    try:
+        return datetime.fromisoformat(value).date()
+    except (ValueError, TypeError):
+        return None
+
+
+def clean_optional_string(value: Optional[str]) -> Optional[str]:
+    """Clean optional string from form input, converting empty strings to None"""
+    if value is None or (isinstance(value, str) and value.strip() == ""):
+        return None
+    return value

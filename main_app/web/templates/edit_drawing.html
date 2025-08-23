@@ -43,7 +43,7 @@
                     <select name="medium" id="medium" class="form-select">
                         <option value="">Select medium</option>
                         {% for medium in drawing_mediums %}
-                        <option value="{{ medium }}" {% if medium == entry.medium %}selected{% endif %}>{{ medium.replace('_', ' ').title() }}</option>
+                        <option value="{{ medium }}" {% if entry.medium and medium == entry.medium.value %}selected{% endif %}>{{ medium.replace('_', ' ').title() }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -95,9 +95,21 @@
                         <label for="status" class="form-label">Status</label>
                         <select name="status" id="status" class="form-select">
                             {% for status in drawing_statuses %}
-                            <option value="{{ status }}" {% if status == entry.status %}selected{% endif %}>{{ status.replace('_', ' ').title() }}</option>
+                            <option value="{{ status }}" {% if status == entry.status.value %}selected{% endif %}>{{ status.replace('_', ' ').title() }}</option>
                             {% endfor %}
                         </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="start_date" class="form-label">Start Date</label>
+                        <input type="date" name="start_date" id="start_date" class="form-input"
+                               value="{% if entry.start_date %}{{ entry.start_date.strftime('%Y-%m-%d') }}{% endif %}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="end_date" class="form-label">End Date</label>
+                        <input type="date" name="end_date" id="end_date" class="form-input"
+                               value="{% if entry.end_date %}{{ entry.end_date.strftime('%Y-%m-%d') }}{% endif %}">
                     </div>
                     
                     <div class="form-group full-width">

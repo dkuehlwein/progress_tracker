@@ -64,7 +64,7 @@
                         <th class="sortable" onclick="sortTable(3)" data-sort="medium">Medium</th>
                         <th class="sortable" onclick="sortTable(4)" data-sort="duration">Duration</th>
                         <th>Image</th>
-                        <th class="sortable" onclick="sortTable(6)" data-sort="added">Added</th>
+                        <th class="sortable" onclick="sortTable(6)" data-sort="dates">Dates</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -110,7 +110,17 @@
                                 -
                             {% endif %}
                         </td>
-                        <td>{{ entry.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if entry.start_date and entry.end_date %}
+                                {{ entry.start_date.strftime('%Y-%m-%d') }} to {{ entry.end_date.strftime('%Y-%m-%d') }}
+                            {% elif entry.start_date %}
+                                Started: {{ entry.start_date.strftime('%Y-%m-%d') }}
+                            {% elif entry.end_date %}
+                                Ended: {{ entry.end_date.strftime('%Y-%m-%d') }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
                         <td>
                             <div class="action-buttons">
                                 <a href="/web/drawing/edit/{{ entry.id }}" class="btn btn-sm btn-outline">✏️</a>
@@ -254,9 +264,12 @@ function sortTable(columnIndex) {
         let bVal = b.children[columnIndex].textContent.trim();
         
         // Handle different data types
-        if (columnIndex === 6) { // Added date column
-            aVal = new Date(aVal);
-            bVal = new Date(bVal);
+        if (columnIndex === 6) { // Dates column
+            // Extract first date for sorting (start date or single date)
+            const aDate = aVal.match(/\d{4}-\d{2}-\d{2}/);
+            const bDate = bVal.match(/\d{4}-\d{2}-\d{2}/);
+            aVal = aDate ? new Date(aDate[0]) : new Date(0);
+            bVal = bDate ? new Date(bDate[0]) : new Date(0);
         } else {
             aVal = aVal.toLowerCase();
             bVal = bVal.toLowerCase();
