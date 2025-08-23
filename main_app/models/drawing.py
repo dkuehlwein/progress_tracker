@@ -1,25 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum, Float
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database.config import Base
-import enum
-
-class DrawingStatus(enum.Enum):
-    PLANNED = "planned"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    ABANDONED = "abandoned"
-    CONTINUED_NEXT_DAY = "continued_next_day"
-
-class DrawingMedium(enum.Enum):
-    COLORED_PENCILS = "colored_pencils"
-    PENCIL = "pencil"
-    CRAYONS = "crayons"
-    MARKERS = "markers"
-    WATERCOLOR = "watercolor"
-    DIGITAL = "digital"
-    BEADS = "beads"
-    MIXED_MEDIA = "mixed_media"
+from enums import DrawingStatus, DrawingMedium
 
 class DrawingEntry(Base):
     __tablename__ = "drawing_entries"
@@ -30,7 +13,7 @@ class DrawingEntry(Base):
     # Basic information
     title = Column(String, nullable=False, index=True)  # Index for title searches
     subject = Column(String, index=True)  # "Rainbow snake design", "Nature composition"
-    medium = Column(Enum(DrawingMedium, values_callable=lambda obj: [e.value for e in obj]), index=True)  # Index for medium filtering
+    medium = Column(DrawingMedium.as_sql_enum(), index=True)  # Index for medium filtering
     
     # Context and setting
     context = Column(Text)  # "Multi-day home project, working alongside almost-8-year-old peer"
@@ -50,7 +33,7 @@ class DrawingEntry(Base):
     technical_notes = Column(Text)  # AI analysis of drawing techniques, composition, development
     
     # Progress and completion
-    status = Column(Enum(DrawingStatus, values_callable=lambda obj: [e.value for e in obj]), default=DrawingStatus.PLANNED, index=True)  # Index for status filtering
+    status = Column(DrawingStatus.as_sql_enum(), default=DrawingStatus.PLANNED, index=True)  # Index for status filtering
     completion_notes = Column(Text)
     continuation_plans = Column(Text)  # "Expressed intention to continue work next day"
     

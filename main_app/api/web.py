@@ -335,7 +335,7 @@ async def web_fitness(request: Request, user_id: Optional[int] = None, db: Sessi
         "entries": entries,
         "selected_user_id": user_id,
         "fitness_statuses": [status.value for status in FitnessStatus],
-        "fitness_types": ["cardio", "strength", "flexibility", "sports", "walking", "running", "cycling", "swimming", "yoga", "other"]
+        "fitness_types": [type.value for type in FitnessType]
     })
 
 @router.get("/web/fitness/add", response_class=HTMLResponse)
@@ -345,7 +345,7 @@ async def add_fitness_form(request: Request, db: Session = Depends(get_db)):
         "request": request,
         "users": users,
         "fitness_statuses": [status.value for status in FitnessStatus],
-        "fitness_types": ["cardio", "strength", "flexibility", "sports", "walking", "running", "cycling", "swimming", "yoga", "other"]
+        "fitness_types": [type.value for type in FitnessType]
     })
 
 @router.post("/web/fitness/add")
@@ -412,10 +412,10 @@ async def update_reading_entry(
     title: str = Form(...),
     author: Optional[str] = Form(None),
     isbn: Optional[str] = Form(None),
-    reading_type: str = Form("PHYSICAL_BOOK"),
+    reading_type: str = Form(ReadingType.PHYSICAL_BOOK.value),
     length_pages: Optional[str] = Form(None),
     length_duration: Optional[str] = Form(None),
-    status: str = Form("PENDING"),
+    status: str = Form(ReadingStatus.PENDING.value),
     progress_fraction: Optional[str] = Form(None),
     started_date: Optional[str] = Form(None),
     completed_date: Optional[str] = Form(None),
@@ -488,14 +488,14 @@ async def update_reading_entry(
     
     # Auto-set dates based on status if not manually provided
     current_time = datetime.now()
-    if status == "IN_PROGRESS" and not entry.started_date:
+    if status == ReadingStatus.IN_PROGRESS.value and not entry.started_date:
         entry.started_date = current_time
-    elif status == "PAUSED":
+    elif status == ReadingStatus.PAUSED.value:
         if not entry.started_date:
             entry.started_date = current_time
         if not entry.paused_date:
             entry.paused_date = current_time
-    elif status == "COMPLETED":
+    elif status == ReadingStatus.COMPLETED.value:
         if not entry.started_date:
             entry.started_date = current_time
         if not entry.completed_date:
@@ -528,7 +528,7 @@ async def update_drawing_entry(
     medium: Optional[str] = Form(None),
     context: Optional[str] = Form(None),
     duration_hours: Optional[float] = Form(None),
-    status: str = Form("PLANNED"),
+    status: str = Form(DrawingStatus.PLANNED.value),
     technical_notes: Optional[str] = Form(None),
     reference_link: Optional[str] = Form(None),
     image: Optional[UploadFile] = File(None),
@@ -578,9 +578,9 @@ async def update_drawing_entry(
     
     # Update dates
     current_time = datetime.now()
-    if status == "IN_PROGRESS" and not entry.start_date:
+    if status == DrawingStatus.IN_PROGRESS.value and not entry.start_date:
         entry.start_date = current_time
-    elif status == "COMPLETED":
+    elif status == DrawingStatus.COMPLETED.value:
         if not entry.start_date:
             entry.start_date = current_time
         entry.end_date = current_time
@@ -599,8 +599,8 @@ async def edit_fitness_form(request: Request, entry_id: int, db: Session = Depen
         "request": request,
         "entry": entry,
         "users": users,
-        "fitness_statuses": [status.name for status in FitnessStatus],
-        "fitness_types": [type.name for type in FitnessType]
+        "fitness_statuses": [status.value for status in FitnessStatus],
+        "fitness_types": [type.value for type in FitnessType]
     })
 
 @router.post("/web/fitness/edit/{entry_id}")
@@ -614,7 +614,7 @@ async def update_fitness_entry(
     distance_km: Optional[float] = Form(None),
     intensity_level: Optional[str] = Form(None),
     location: Optional[str] = Form(None),
-    status: str = Form("PLANNED"),
+    status: str = Form(FitnessStatus.PLANNED.value),
     notes: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
@@ -636,7 +636,7 @@ async def update_fitness_entry(
     
     # Update activity date
     current_time = datetime.now()
-    if status in ["IN_PROGRESS", "COMPLETED"]:
+    if status in [FitnessStatus.IN_PROGRESS.value, FitnessStatus.COMPLETED.value]:
         entry.activity_date = current_time
     
     db.commit()

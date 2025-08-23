@@ -2,7 +2,7 @@
 from pydantic import BaseModel, Field, validator
 from typing import Optional
 from datetime import datetime
-from models import ReadingStatus, ReadingType, DrawingStatus, DrawingMedium, FitnessStatus, FitnessType
+from enums import ReadingStatus, ReadingType, DrawingStatus, DrawingMedium, FitnessStatus, FitnessType
 
 
 class ReadingFormSchema(BaseModel):
@@ -10,10 +10,10 @@ class ReadingFormSchema(BaseModel):
     title: str = Field(..., min_length=1, max_length=500, description="Title is required")
     author: Optional[str] = Field(None, max_length=200)
     isbn: Optional[str] = Field(None, max_length=20, regex=r'^[\d\-X]*$')
-    reading_type: str = Field("physical_book", description="Reading type")
+    reading_type: str = Field(ReadingType.PHYSICAL_BOOK.value, description="Reading type")
     length_pages: Optional[int] = Field(None, ge=1, le=10000)
     length_duration: Optional[int] = Field(None, ge=1, le=100000)  # Duration in minutes
-    status: str = Field("pending", description="Reading status")
+    status: str = Field(ReadingStatus.PENDING.value, description="Reading status")
     progress_fraction: Optional[float] = Field(None, ge=0.0, le=1.0)
     notes: Optional[str] = Field(None, max_length=2000)
     pause_reason: Optional[str] = Field(None, max_length=500)
@@ -61,7 +61,7 @@ class DrawingFormSchema(BaseModel):
     duration_hours: Optional[float] = Field(None, ge=0, le=100)
     sessions_count: Optional[int] = Field(None, ge=1, le=100)
     materials_count: Optional[int] = Field(None, ge=1, le=1000000)
-    status: str = Field("planned")
+    status: str = Field(DrawingStatus.PLANNED.value)
     technical_notes: Optional[str] = Field(None, max_length=2000)
     complexity_level: Optional[str] = Field(None, regex=r'^(beginner|intermediate|advanced)$')
     reference_link: Optional[str] = Field(None, max_length=500)
@@ -110,7 +110,7 @@ class FitnessFormSchema(BaseModel):
     distance_km: Optional[float] = Field(None, ge=0, le=1000)
     intensity_level: Optional[str] = Field(None, regex=r'^(low|moderate|high|very high)$')
     location: Optional[str] = Field(None, max_length=200)
-    status: str = Field("planned")
+    status: str = Field(FitnessStatus.PLANNED.value)
     notes: Optional[str] = Field(None, max_length=2000)
     
     @validator('duration_minutes', pre=True)

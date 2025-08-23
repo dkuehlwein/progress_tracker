@@ -1,27 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum, Float
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database.config import Base
-import enum
-
-class FitnessStatus(enum.Enum):
-    PLANNED = "planned"
-    IN_PROGRESS = "in_progress" 
-    COMPLETED = "completed"
-    SKIPPED = "skipped"
-    CANCELLED = "cancelled"
-
-class FitnessType(enum.Enum):
-    CARDIO = "cardio"
-    STRENGTH = "strength"
-    FLEXIBILITY = "flexibility"
-    SPORTS = "sports"
-    WALKING = "walking"
-    RUNNING = "running"
-    CYCLING = "cycling"
-    SWIMMING = "swimming"
-    YOGA = "yoga"
-    OTHER = "other"
+from enums import FitnessStatus, FitnessType
 
 class FitnessEntry(Base):
     __tablename__ = "fitness_entries"
@@ -31,7 +12,7 @@ class FitnessEntry(Base):
     
     # Basic information
     title = Column(String, nullable=False, index=True)  # Index for title searches
-    activity_type = Column(Enum(FitnessType, values_callable=lambda obj: [e.value for e in obj]), index=True)  # Index for activity type filtering
+    activity_type = Column(FitnessType.as_sql_enum(), index=True)  # Index for activity type filtering
     description = Column(Text)
     
     # Time and duration
@@ -55,7 +36,7 @@ class FitnessEntry(Base):
     equipment_used = Column(String)
     
     # Progress and notes
-    status = Column(Enum(FitnessStatus, values_callable=lambda obj: [e.value for e in obj]), default=FitnessStatus.PLANNED, index=True)  # Index for status filtering
+    status = Column(FitnessStatus.as_sql_enum(), default=FitnessStatus.PLANNED, index=True)  # Index for status filtering
     notes = Column(Text)
     achievements = Column(Text)  # Personal records, milestones
     next_goals = Column(Text)

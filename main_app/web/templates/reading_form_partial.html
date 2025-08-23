@@ -40,22 +40,22 @@
         <div class="form-group">
             <label for="reading_type" class="form-label">Type</label>
             <select name="reading_type" id="reading_type" class="form-select" onchange="toggleLengthFields()">
-                <option value="PHYSICAL_BOOK" {% if entry and entry.reading_type and entry.reading_type.name == 'PHYSICAL_BOOK' %}selected{% endif %}>📚 Physical Book</option>
-                <option value="AUDIOBOOK" {% if entry and entry.reading_type and entry.reading_type.name == 'AUDIOBOOK' %}selected{% endif %}>🎧 Audiobook</option>
-                <option value="EBOOK" {% if entry and entry.reading_type and entry.reading_type.name == 'EBOOK' %}selected{% endif %}>📱 E-book</option>
-                <option value="MAGAZINE" {% if entry and entry.reading_type and entry.reading_type.name == 'MAGAZINE' %}selected{% endif %}>📰 Magazine</option>
-                <option value="COMIC" {% if entry and entry.reading_type and entry.reading_type.name == 'COMIC' %}selected{% endif %}>📖 Comic</option>
+                <option value="physical_book" {% if entry and entry.reading_type and entry.reading_type.name == 'PHYSICAL_BOOK' %}selected{% endif %}>📚 Physical Book</option>
+                <option value="audiobook" {% if entry and entry.reading_type and entry.reading_type.name == 'AUDIOBOOK' %}selected{% endif %}>🎧 Audiobook</option>
+                <option value="ebook" {% if entry and entry.reading_type and entry.reading_type.name == 'EBOOK' %}selected{% endif %}>📱 E-book</option>
+                <option value="magazine" {% if entry and entry.reading_type and entry.reading_type.name == 'MAGAZINE' %}selected{% endif %}>📰 Magazine</option>
+                <option value="comic" {% if entry and entry.reading_type and entry.reading_type.name == 'COMIC' %}selected{% endif %}>📖 Comic</option>
             </select>
         </div>
 
         <div class="form-group">
             <label for="status" class="form-label">Status</label>
             <select name="status" id="status" class="form-select">
-                <option value="PENDING" {% if entry and entry.status and entry.status.name == 'PENDING' %}selected{% endif %}>⏳ Pending</option>
-                <option value="IN_PROGRESS" {% if entry and entry.status and entry.status.name == 'IN_PROGRESS' %}selected{% endif %}>📚 In Progress</option>
-                <option value="PAUSED" {% if entry and entry.status and entry.status.name == 'PAUSED' %}selected{% endif %}>⏸️ Paused</option>
-                <option value="COMPLETED" {% if entry and entry.status and entry.status.name == 'COMPLETED' %}selected{% endif %}>✅ Completed</option>
-                <option value="ABANDONED" {% if entry and entry.status and entry.status.name == 'ABANDONED' %}selected{% endif %}>❌ Abandoned</option>
+                <option value="pending" {% if entry and entry.status and entry.status.name == 'PENDING' %}selected{% endif %}>⏳ Pending</option>
+                <option value="in_progress" {% if entry and entry.status and entry.status.name == 'IN_PROGRESS' %}selected{% endif %}>📚 In Progress</option>
+                <option value="paused" {% if entry and entry.status and entry.status.name == 'PAUSED' %}selected{% endif %}>⏸️ Paused</option>
+                <option value="completed" {% if entry and entry.status and entry.status.name == 'COMPLETED' %}selected{% endif %}>✅ Completed</option>
+                <option value="abandoned" {% if entry and entry.status and entry.status.name == 'ABANDONED' %}selected{% endif %}>❌ Abandoned</option>
             </select>
         </div>
 
@@ -140,7 +140,7 @@ function toggleLengthFields() {
     const pagesInput = document.getElementById('length_pages');
     const durationInput = document.getElementById('length_duration');
     
-    if (readingType === 'AUDIOBOOK') {
+    if (readingType === 'audiobook') {
         // For audiobooks, show duration and hide pages
         pagesGroup.style.display = 'none';
         durationGroup.style.display = 'block';

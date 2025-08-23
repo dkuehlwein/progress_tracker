@@ -673,9 +673,9 @@ async def add_drawing_entry(
         # Remove None values
         entry_data = {k: v for k, v in entry_data.items() if v is not None}
         
-        await api_request("POST", "/api/drawing/", entry_data)
+        response = await api_request("POST", "/api/drawing/", entry_data)
         
-        return f"🎨 Drawing entry added successfully!\nTitle: {title}\nUser: {user.display_name}\nStatus: {status}"
+        return f"🎨 Drawing entry added successfully!\nID: {response['id']}\nTitle: {title}\nUser: {user.display_name}\nStatus: {status}"
         
     except Exception as e:
         return f"❌ Error adding drawing entry: {str(e)}"

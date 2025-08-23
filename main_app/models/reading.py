@@ -1,22 +1,8 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum, Float
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Float
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database.config import Base
-import enum
-
-class ReadingStatus(enum.Enum):
-    PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    PAUSED = "paused"
-    COMPLETED = "completed"
-    ABANDONED = "abandoned"
-
-class ReadingType(enum.Enum):
-    PHYSICAL_BOOK = "physical_book"
-    AUDIOBOOK = "audiobook"
-    EBOOK = "ebook"
-    MAGAZINE = "magazine"
-    COMIC = "comic"
+from enums import ReadingStatus, ReadingType
 
 class ReadingEntry(Base):
     __tablename__ = "reading_entries"
@@ -30,12 +16,12 @@ class ReadingEntry(Base):
     isbn = Column(String, index=True)  # Index for ISBN lookups
     
     # Type and length
-    reading_type = Column(Enum(ReadingType, values_callable=lambda obj: [e.value for e in obj]), default=ReadingType.PHYSICAL_BOOK, index=True)
+    reading_type = Column(ReadingType.as_sql_enum(), default=ReadingType.PHYSICAL_BOOK, index=True)
     length_pages = Column(Integer)
     length_duration = Column(Integer)  # For audiobooks: duration in minutes
     
     # Progress tracking
-    status = Column(Enum(ReadingStatus, values_callable=lambda obj: [e.value for e in obj]), default=ReadingStatus.PENDING, index=True)  # Index for status filtering
+    status = Column(ReadingStatus.as_sql_enum(), default=ReadingStatus.PENDING, index=True)  # Index for status filtering
     progress_fraction = Column(Float)  # 0.0 to 1.0 (e.g., 2/3 = 0.67)
     
     # Dates - indexed for date range queries
