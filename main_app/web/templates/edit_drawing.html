@@ -47,6 +47,12 @@
                         {% endfor %}
                     </select>
                 </div>
+                
+                <div class="form-group">
+                    <label for="reference_link" class="form-label">Reference Link</label>
+                    <input type="url" name="reference_link" id="reference_link" class="form-input"
+                           placeholder="https://example.com/reference" value="{{ entry.reference_link or '' }}">
+                </div>
             </div>
         </div>
         
@@ -116,12 +122,6 @@
                         <label for="technical_notes" class="form-label">Technical Notes</label>
                         <textarea name="technical_notes" id="technical_notes" class="form-textarea"
                                   placeholder="AI analysis: Complex pattern matching, sophisticated technique development...">{{ entry.technical_notes or '' }}</textarea>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="reference_link" class="form-label">Reference Link</label>
-                        <input type="url" name="reference_link" id="reference_link" class="form-input"
-                               placeholder="https://example.com/reference" value="{{ entry.reference_link or '' }}">
                     </div>
                 </div>
             </div>

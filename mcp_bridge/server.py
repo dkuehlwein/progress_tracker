@@ -601,7 +601,7 @@ async def add_drawing_entry(
     subject: Optional[str] = None,
     medium: Optional[str] = None,
     context: Optional[str] = None,
-    duration_hours: Optional[float] = None,
+    duration_hours: Optional[str] = None,
     status: str = "planned",
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
@@ -616,7 +616,7 @@ async def add_drawing_entry(
         subject: What was drawn (e.g., "Rainbow snake design")
         medium: Medium used - must be one of: colored_pencils, pencil, crayons, markers, watercolor, digital, beads, mixed_media
         context: User-provided context of the work (e.g., "Multi-day home project")
-        duration_hours: Total time spent in hours
+        duration_hours: Total time spent in hours (e.g. "0.5")
         status: Current status (planned, in_progress, completed, abandoned, continued_next_day)
         start_date: Start date in YYYY-MM-DD format (e.g., "2025-05-30")
         end_date: End date in YYYY-MM-DD format (e.g., "2025-05-30")
@@ -634,6 +634,14 @@ async def add_drawing_entry(
         if medium and medium not in valid_mediums:
             return f"❌ Error: Invalid medium '{medium}'. Valid options are: {', '.join(valid_mediums)}"
         
+        # Convert and validate duration_hours
+        duration_hours_float = None
+        if duration_hours is not None:
+            try:
+                duration_hours_float = float(duration_hours) if duration_hours.strip() else None
+            except (ValueError, TypeError):
+                return f"❌ Error: duration_hours must be a valid number, got '{duration_hours}'"
+        
         # Prepare data
         entry_data = {
             "user_id": user.id,
@@ -641,7 +649,7 @@ async def add_drawing_entry(
             "subject": subject,
             "medium": medium,
             "context": context,
-            "duration_hours": duration_hours,
+            "duration_hours": duration_hours_float,
             "status": status,
             "technical_notes": technical_notes,
             "reference_link": reference_link
