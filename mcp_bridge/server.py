@@ -213,12 +213,24 @@ def format_drawing_entry(entry: Dict, entry_id: str, user_name: str) -> str:
     if completed_date:
         date_info.append(f"Completed: {completed_date}")
     
+    # Add duration if available
+    duration_hours = entry.get('duration_hours')
+    if duration_hours:
+        date_info.append(f"Duration: {duration_hours}h")
+    
     date_str = f" | {' | '.join(date_info)}" if date_info else ""
     
-    # Build notes info
+    # Build notes info including context and technical notes
     notes = entry.get('notes', '')
     completion_notes = entry.get('completion_notes', '')
+    context = entry.get('context', '')
+    technical_notes = entry.get('technical_notes', '')
+    
     notes_info = []
+    if context:
+        notes_info.append(f"Context: {context[:50]}{'...' if len(context) > 50 else ''}")
+    if technical_notes:
+        notes_info.append(f"AI Notes: {technical_notes[:50]}{'...' if len(technical_notes) > 50 else ''}")
     if notes:
         notes_info.append(f"Notes: {notes[:50]}{'...' if len(notes) > 50 else ''}")
     if completion_notes:
