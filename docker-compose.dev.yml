@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  postgres-dev:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_DEV_USER:-progress_user_dev}
+      POSTGRES_PASSWORD: ${POSTGRES_DEV_PASSWORD:-progress_password_dev}
+      POSTGRES_DB: ${POSTGRES_DEV_DB:-progress_tracker_dev}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  progress-tracker:
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://progress_user:progress_password@postgres:5432/progress_tracker}
+
+volumes:
+  postgres_dev_data:

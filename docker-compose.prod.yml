@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  progress-tracker:
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+psycopg://progress_user:progress_password@postgres:5432/progress_tracker

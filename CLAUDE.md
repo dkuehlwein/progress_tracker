@@ -5,9 +5,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Development Setup
 
 ### Prerequisites
-- PostgreSQL running via Docker: `docker-compose up -d postgres`
-- Development PostgreSQL (optional): `docker-compose up -d postgres-dev`
 - Python environment with uv: `uv venv && uv pip install -r requirements.txt`
+
+### Docker Environment Setup
+```bash
+# Development environment (includes dev database on port 5433)
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+# Production environment
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+# Database only (production)
+docker-compose up -d postgres
+
+# Database only (development with both prod and dev databases)
+docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d postgres postgres-dev
+```
 
 ### Main App (FastAPI)
 ```bash
