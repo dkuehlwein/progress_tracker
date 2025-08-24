@@ -133,7 +133,7 @@
             </div>
             {% if recent_reading %}
                 {% for entry in recent_reading %}
-                <div class="entry-card">
+                <div class="entry-card clickable-entry" onclick="window.location.href='/web/reading/edit/{{ entry.id }}'" style="cursor: pointer;">
                     <h4 class="entry-title">{{ entry.title }}</h4>
                     {% if entry.author %}<p><strong>By:</strong> {{ entry.author }}</p>{% endif %}
                     <div class="entry-meta">
@@ -173,7 +173,7 @@
             </div>
             {% if recent_fitness %}
                 {% for entry in recent_fitness %}
-                <div class="entry-card">
+                <div class="entry-card clickable-entry" onclick="window.location.href='/web/fitness/edit/{{ entry.id }}'" style="cursor: pointer;">
                     <h4 class="entry-title">{{ entry.title }}</h4>
                     {% if entry.activity_type %}<p><strong>Type:</strong> {{ entry.activity_type | title }}</p>{% endif %}
                     <div class="entry-meta">
@@ -213,10 +213,10 @@
             </div>
             {% if recent_drawing %}
                 {% for entry in recent_drawing %}
-                <div class="entry-card" style="{% if entry.image_url %}display: flex; gap: 1rem; align-items: flex-start;{% endif %}">
+                <div class="entry-card clickable-entry{% if entry.image_url %} has-image{% endif %}" onclick="window.location.href='/web/drawing/edit/{{ entry.id }}'" style="cursor: pointer;">
                     {% if entry.image_url %}
                     <div style="flex-shrink: 0;">
-                        <img src="{{ entry.image_url }}" alt="{{ entry.title }}" class="table-thumbnail" onclick="openImageModal(this.src)" style="width: 80px; height: 60px;">
+                        <img src="{{ entry.image_url }}" alt="{{ entry.title }}" class="table-thumbnail" onclick="event.stopPropagation(); openImageModal(this.src)" style="width: 80px; height: 60px;">
                     </div>
                     {% endif %}
                     <div style="flex: 1;">
@@ -295,12 +295,15 @@ function renderChart(containerId, data, color) {
     container.innerHTML = html;
 }
 
-// Render charts with data from backend
-{% if selected_user.name == "simon" %}
-renderChart('readingChart', {{ reading_history | tojson }}, '#667eea');
-renderChart('drawingChart', {{ drawing_history | tojson }}, '#e74c3c');
-{% else %}
-renderChart('fitnessChart', {{ fitness_history | tojson }}, '#28a745');
+// Chart data from backend
+{% if selected_user and selected_user.name == "simon" %}
+var readingData = {{ reading_history | tojson if reading_history else '[]' }};
+var drawingData = {{ drawing_history | tojson if drawing_history else '[]' }};
+renderChart('readingChart', readingData, '#667eea');
+renderChart('drawingChart', drawingData, '#e74c3c');
+{% elif selected_user %}
+var fitnessData = {{ fitness_history | tojson if fitness_history else '[]' }};
+renderChart('fitnessChart', fitnessData, '#28a745');
 {% endif %}
 
 // Image modal handling for drawing thumbnails

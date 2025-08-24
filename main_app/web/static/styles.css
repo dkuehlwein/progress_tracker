@@ -422,6 +422,12 @@ body {
     border-left-color: var(--secondary);
 }
 
+.entry-card.has-image {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
 .entry-header {
     display: flex;
     justify-content: space-between;
