@@ -138,8 +138,11 @@
                     {% if entry.author %}<p><strong>By:</strong> {{ entry.author }}</p>{% endif %}
                     <div class="entry-meta">
                         <span class="status-badge status-{{ entry.status.value.lower() }}">{{ entry.status.value.replace('_', ' ').title() }}</span>
-                        {% if entry.progress_fraction %}
-                        <span>• {{ (entry.progress_fraction * 100) | round | int }}% complete</span>
+                        {% if entry.length_pages %}
+                        <span>• {{ entry.length_pages }} pages</span>
+                        {% endif %}
+                        {% if entry.started_date %}
+                        <span>• Started {{ entry.started_date.strftime('%b %d, %Y') }}</span>
                         {% endif %}
                         {% if not selected_user %}
                         {% set user = users | selectattr('id', 'equalto', entry.user_id) | first %}
@@ -210,20 +213,27 @@
             </div>
             {% if recent_drawing %}
                 {% for entry in recent_drawing %}
-                <div class="entry-card">
-                    <h4 class="entry-title">{{ entry.title }}</h4>
-                    {% if entry.subject %}<p><strong>Subject:</strong> {{ entry.subject }}</p>{% endif %}
-                    <div class="entry-meta">
-                        <span class="status-badge status-{{ entry.status.value.lower() }}">{{ entry.status.value.replace('_', ' ').title() }}</span>
-                        {% if entry.duration_hours %}
-                        <span>• {{ entry.duration_hours }}h</span>
-                        {% endif %}
-                        {% if not selected_user %}
-                        {% set user = users | selectattr('id', 'equalto', entry.user_id) | first %}
-                        {% if user %}
-                        <span>• {{ user.display_name }}</span>
-                        {% endif %}
-                        {% endif %}
+                <div class="entry-card" style="{% if entry.image_url %}display: flex; gap: 1rem; align-items: flex-start;{% endif %}">
+                    {% if entry.image_url %}
+                    <div style="flex-shrink: 0;">
+                        <img src="{{ entry.image_url }}" alt="{{ entry.title }}" class="table-thumbnail" onclick="openImageModal(this.src)" style="width: 80px; height: 60px;">
+                    </div>
+                    {% endif %}
+                    <div style="flex: 1;">
+                        <h4 class="entry-title">{{ entry.title }}</h4>
+                        {% if entry.subject %}<p><strong>Subject:</strong> {{ entry.subject }}</p>{% endif %}
+                        <div class="entry-meta">
+                            <span class="status-badge status-{{ entry.status.value.lower() }}">{{ entry.status.value.replace('_', ' ').title() }}</span>
+                            {% if entry.duration_hours %}
+                            <span>• {{ entry.duration_hours }}h</span>
+                            {% endif %}
+                            {% if not selected_user %}
+                            {% set user = users | selectattr('id', 'equalto', entry.user_id) | first %}
+                            {% if user %}
+                            <span>• {{ user.display_name }}</span>
+                            {% endif %}
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
@@ -292,7 +302,30 @@ renderChart('drawingChart', {{ drawing_history | tojson }}, '#e74c3c');
 {% else %}
 renderChart('fitnessChart', {{ fitness_history | tojson }}, '#28a745');
 {% endif %}
+
+// Image modal handling for drawing thumbnails
+function openImageModal(src) {
+    document.getElementById('modalImage').src = src;
+    document.getElementById('imageModal').style.display = 'flex';
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').style.display = 'none';
+}
+
+// Escape key to close modal
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeImageModal();
+    }
+});
 </script>
 {% endif %}
+
+<!-- Image Modal -->
+<div id="imageModal" class="image-modal" style="display: none;" onclick="closeImageModal()">
+    <button class="close-btn" onclick="closeImageModal()">&times;</button>
+    <img id="modalImage" src="" alt="">
+</div>
 
 {% endblock %}
