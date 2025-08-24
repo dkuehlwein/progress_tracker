@@ -53,14 +53,13 @@
         <div class="form-section">
             <div class="form-section-title">📋 Observations & Context</div>
             <div class="form-group">
-                <label for="context" class="form-label required">Context & Observations</label>
-                <textarea name="context" id="context" class="form-textarea" rows="10" required 
+                <label for="context" class="form-label required">Context</label>
+                <textarea name="context" id="context" class="form-textarea" rows="5" required 
                           placeholder="Detailed description of the situation, behaviors observed, environmental factors, timing, interactions, etc.
 
 Example format:
 - Time/Setting: Early morning wake (5:00am), transition at 8:30am
 - Behavioral Sequence: [describe what happened step by step]
-- Key Observations: [notable behaviors, responses, patterns]
 - Environmental Factors: [setting, people present, circumstances]"></textarea>
                 <div class="form-hint">
                     💡 Be detailed and specific. Include timing, setting, what led up to events, responses, and outcomes.
@@ -69,14 +68,11 @@ Example format:
         </div>
 
         <!-- Additional Input Section -->
-        <div class="form-section collapsible-section">
-            <div class="form-section-title collapsible-header expanded" onclick="toggleSection('additional-input')">
-                <span>👨‍👩‍👧 Additional Input & Analysis</span>
-                <span class="toggle-icon">▲</span>
-            </div>
-            <div class="collapsible-content" id="additional-input">
+        <div class="form-section">
+            <div class="form-section-title">👨‍👩‍👧 Additional Input & Analysis</div>
+            <div>
                 <div class="form-group">
-                    <label for="parental_input" class="form-label">Parental Notes & Observations</label>
+                    <label for="parental_input" class="form-label">Parental Notes</label>
                     <textarea name="parental_input" id="parental_input" class="form-textarea" rows="6" 
                               placeholder="Additional observations, context, or notes from parents/caregivers"></textarea>
                 </div>
