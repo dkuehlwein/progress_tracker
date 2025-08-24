@@ -96,6 +96,15 @@ class FitnessEntry(BaseModel):
     achievements: Optional[str] = None
     next_goals: Optional[str] = None
 
+class JournalEntry(BaseModel):
+    date: str  # Date in YYYY-MM-DD format
+    title: Optional[str] = None
+    location: Optional[str] = None
+    context: str
+    parental_input: Optional[str] = None
+    ai_analysis: Optional[str] = None
+    tags: Optional[str] = None  # Comma-separated tags
+
 # Helper functions
 def format_date(date_str: Optional[str]) -> Optional[str]:
     """Format ISO datetime string to just date part"""
@@ -267,6 +276,34 @@ def format_fitness_entry(entry: Dict, entry_id: str, user_name: str) -> str:
     notes_str = f"\n    {' | '.join(notes_info)}" if notes_info else ""
     
     return f"  • [{entry_id}] {title}{type_str} [{status}] - {user_name}{date_str}{notes_str}"
+
+def format_journal_entry(entry: Dict, entry_id: str, user_name: str) -> str:
+    """Format a journal entry for list display"""
+    title = entry.get('title', 'Journal Entry')
+    date = entry.get('date', 'Unknown Date')
+    location = entry.get('location', '')
+    tags = entry.get('tags', '')
+    
+    # Build location info
+    location_str = f" at {location}" if location else ""
+    
+    # Build tags info
+    tags_str = f" [{tags}]" if tags else ""
+    
+    # Context preview
+    context = entry.get('context', '')
+    context_preview = context[:80] + '...' if len(context) > 80 else context
+    
+    # Build additional info
+    info_parts = []
+    if entry.get('parental_input'):
+        info_parts.append("Has parental input")
+    if entry.get('ai_analysis'):
+        info_parts.append("Has analysis")
+    
+    additional_info = f" | {' | '.join(info_parts)}" if info_parts else ""
+    
+    return f"  • [{entry_id}] {title}{location_str}{tags_str} - {user_name} | {date}{additional_info}\n    {context_preview}"
 
 async def api_request(method: str, endpoint: str, data: Optional[Dict] = None) -> Dict:
     """Make HTTP request to the main app API with proper error handling"""
@@ -763,6 +800,71 @@ async def add_fitness_entry(
         return f"❌ Error adding fitness entry: {str(e)}"
 
 @mcp.tool
+async def add_journal_entry(
+    user_name: str,
+    date: str,
+    context: str,
+    title: Optional[str] = None,
+    location: Optional[str] = None,
+    parental_input: Optional[str] = None,
+    ai_analysis: Optional[str] = None,
+    tags: Optional[str] = None
+) -> str:
+    """Add a new journal entry for emotional/social development tracking
+    
+    Args:
+        user_name: Username (daniel or simon)
+        date: Entry date in YYYY-MM-DD format (e.g., "2024-08-24")
+        context: Main context and observations (required)
+        title: Optional title for quick reference
+        location: Location where observations were made
+        parental_input: Additional parent observations/notes
+        ai_analysis: Structured analysis (behavioral patterns, etc.)
+        tags: Comma-separated tags (conflict, achievement)
+    """
+    try:
+        # Get user
+        user = await get_user_by_name(user_name)
+        if not user:
+            return f"User '{user_name}' not found. Available users: {', '.join([u.name for u in await get_users()])}"
+        
+        # Validate date format
+        try:
+            datetime.fromisoformat(date)
+        except ValueError:
+            return f"❌ Invalid date format. Use YYYY-MM-DD format (e.g., '2024-08-24')"
+        
+        # Build entry data
+        entry_data = {
+            "user_id": user.id,
+            "date": date,
+            "context": context
+        }
+        
+        # Add optional fields if provided
+        if title:
+            entry_data["title"] = title
+        if location:
+            entry_data["location"] = location
+        if parental_input:
+            entry_data["parental_input"] = parental_input
+        if ai_analysis:
+            entry_data["ai_analysis"] = ai_analysis
+        if tags:
+            entry_data["tags"] = tags
+        
+        await api_request("POST", "/api/journal/", entry_data)
+        
+        tag_info = f" (Tags: {tags})" if tags else ""
+        location_info = f" at {location}" if location else ""
+        title_info = f" - {title}" if title else ""
+        
+        return f"📝 Journal entry added successfully!\nDate: {date}{location_info}{title_info}{tag_info}\nUser: {user.display_name}"
+        
+    except Exception as e:
+        return f"❌ Error adding journal entry: {str(e)}"
+
+@mcp.tool
 async def get_entry_details(
     entry_id: int,
     category: str
@@ -775,8 +877,8 @@ async def get_entry_details(
     """
     try:
         # Validate category
-        if category not in ["reading", "drawing", "fitness"]:
-            return f"❌ Invalid category: {category}. Must be one of: reading, drawing, fitness"
+        if category not in ["reading", "drawing", "fitness", "journal"]:
+            return f"❌ Invalid category: {category}. Must be one of: reading, drawing, fitness, journal"
         
         # Get the entry
         try:
@@ -791,7 +893,7 @@ async def get_entry_details(
         user_name = next((u.display_name for u in users if u.id == entry.get('user_id')), "Unknown User")
         
         # Format the entry details
-        category_emoji = {"reading": "📚", "drawing": "🎨", "fitness": "💪"}
+        category_emoji = {"reading": "📚", "drawing": "🎨", "fitness": "💪", "journal": "📝"}
         emoji = category_emoji.get(category, "ℹ️")
         
         result = f"{emoji} {category.title()} Entry Details (ID: {entry_id})\n"
@@ -819,6 +921,14 @@ async def get_entry_details(
             if entry.get('complexity_level'): result += f"Complexity: {entry['complexity_level']}\n"
             if entry.get('technical_notes'): result += f"Technical Notes: {entry['technical_notes']}\n"
             if entry.get('materials_count'): result += f"Materials Count: {entry['materials_count']}\n"
+        
+        elif category == "journal":
+            if entry.get('date'): result += f"Date: {entry['date']}\n"
+            if entry.get('location'): result += f"Location: {entry['location']}\n"
+            if entry.get('tags'): result += f"Tags: {entry['tags']}\n"
+            if entry.get('context'): result += f"Context: {entry['context']}\n"
+            if entry.get('parental_input'): result += f"Parental Input: {entry['parental_input']}\n"
+            if entry.get('ai_analysis'): result += f"Analysis: {entry['ai_analysis']}\n"
         
         else:  # fitness
             if entry.get('activity_type'): result += f"Activity Type: {entry['activity_type']}\n"
@@ -885,13 +995,19 @@ async def edit_entry(
     heart_rate_max: Optional[str] = None,
     perceived_effort: Optional[str] = None,
     weather: Optional[str] = None,
-    equipment_used: Optional[str] = None
+    equipment_used: Optional[str] = None,
+    # Journal fields
+    date: Optional[str] = None,
+    context: Optional[str] = None,
+    parental_input: Optional[str] = None,
+    ai_analysis: Optional[str] = None,
+    tags: Optional[str] = None
 ) -> str:
     """Edit an existing progress entry
     
     Args:
         entry_id: ID of the entry to edit
-        category: Entry category (reading, drawing, fitness)
+        category: Entry category (reading, drawing, fitness, journal)
         user_name: Optional - verify entry belongs to this user
         title: Optional - new title
         status: Optional - new status
@@ -904,11 +1020,12 @@ async def edit_entry(
     Fitness fields: activity_type, description, duration_minutes, distance_km,
                    intensity_level, notes, achievements, next_goals, calories_burned,
                    heart_rate_avg, heart_rate_max, perceived_effort, weather, equipment_used
+    Journal fields: date, context, location, parental_input, ai_analysis, tags
     """
     try:
         # Validate category
-        if category not in ["reading", "drawing", "fitness"]:
-            return f"❌ Invalid category: {category}. Must be one of: reading, drawing, fitness"
+        if category not in ["reading", "drawing", "fitness", "journal"]:
+            return f"❌ Invalid category: {category}. Must be one of: reading, drawing, fitness, journal"
         
         # First, get the existing entry to verify it exists and get user info
         try:
@@ -989,7 +1106,7 @@ async def edit_entry(
         user_name_display = next((u.display_name for u in users if u.id == updated_entry.get('user_id')), "Unknown User")
         
         # Format success message
-        category_emoji = {"reading": "📚", "drawing": "🎨", "fitness": "💪"}
+        category_emoji = {"reading": "📚", "drawing": "🎨", "fitness": "💪", "journal": "📝"}
         emoji = category_emoji.get(category, "✅")
         
         return f"{emoji} {category.title()} entry updated successfully!\nID: {entry_id}\nTitle: {updated_entry.get('title', 'Unknown')}\nUser: {user_name_display}\nStatus: {updated_entry.get('status', 'Unknown')}"
@@ -1037,7 +1154,7 @@ async def list_entries(
         user_lookup = {u.id: u.display_name for u in users}
         
         # Get entries based on category filter
-        categories = [category] if category else ["reading", "drawing", "fitness"]
+        categories = [category] if category else ["reading", "drawing", "fitness", "journal"]
         
         for cat in categories:
             try:
@@ -1062,6 +1179,8 @@ async def list_entries(
                             results.append(format_reading_entry(entry, entry_id, user_name))
                         elif cat == "drawing":
                             results.append(format_drawing_entry(entry, entry_id, user_name))
+                        elif cat == "journal":
+                            results.append(format_journal_entry(entry, entry_id, user_name))
                         else:  # fitness
                             results.append(format_fitness_entry(entry, entry_id, user_name))
             except Exception as e:

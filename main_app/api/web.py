@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, extract
 from typing import Optional, List
 from database.config import get_db
-from models import User, ReadingEntry, DrawingEntry, FitnessEntry, ReadingStatus, DrawingStatus, FitnessStatus, ReadingType, DrawingMedium, FitnessType
+from models import User, ReadingEntry, DrawingEntry, FitnessEntry, JournalEntry, ReadingStatus, DrawingStatus, FitnessStatus, ReadingType, DrawingMedium, FitnessType
 from datetime import datetime, timedelta
 from utils.validation import parse_optional_int, parse_optional_float, parse_optional_date, clean_optional_string
 
@@ -671,3 +671,124 @@ async def delete_fitness_entry(entry_id: int, db: Session = Depends(get_db)):
     db.delete(entry)
     db.commit()
     return RedirectResponse(url="/web/fitness", status_code=303)
+
+# Journal Entry Routes
+
+@router.get("/web/journal", response_class=HTMLResponse)
+async def web_journal(request: Request, user_id: Optional[int] = None, tag_filter: Optional[str] = None, db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    query = db.query(JournalEntry)
+    if user_id:
+        query = query.filter(JournalEntry.user_id == user_id)
+    if tag_filter:
+        query = query.filter(JournalEntry.tags.contains(tag_filter))
+    entries = query.order_by(JournalEntry.date.desc()).all()
+    
+    return templates.TemplateResponse("journal.html", {
+        "request": request,
+        "users": users,
+        "entries": entries,
+        "selected_user_id": user_id,
+        "tag_filter": tag_filter,
+        "available_tags": ["conflict", "achievement"]
+    })
+
+@router.get("/web/journal/add", response_class=HTMLResponse)
+async def add_journal_form(request: Request, user_id: Optional[int] = None, db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    return templates.TemplateResponse("add_journal.html", {
+        "request": request,
+        "users": users,
+        "selected_user_id": user_id
+    })
+
+@router.post("/web/journal/add")
+async def add_journal_web(
+    user_id: int = Form(...),
+    date: str = Form(...),
+    title: Optional[str] = Form(None),
+    location: Optional[str] = Form(None),
+    context: str = Form(...),
+    parental_input: Optional[str] = Form(None),
+    ai_analysis: Optional[str] = Form(None),
+    tags: Optional[str] = Form(None),
+    db: Session = Depends(get_db)
+):
+    entry_data = {
+        "user_id": user_id,
+        "date": parse_optional_date(date),
+        "title": clean_optional_string(title),
+        "location": clean_optional_string(location),
+        "context": context,
+        "parental_input": clean_optional_string(parental_input),
+        "ai_analysis": clean_optional_string(ai_analysis),
+        "tags": clean_optional_string(tags)
+    }
+    
+    # Filter out None values
+    filtered_data = {k: v for k, v in entry_data.items() if v is not None}
+    
+    try:
+        entry = JournalEntry(**filtered_data)
+        db.add(entry)
+        db.commit()
+        db.refresh(entry)
+        return RedirectResponse(url="/web/journal", status_code=303)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/web/journal/edit/{entry_id}", response_class=HTMLResponse)
+async def edit_journal_form(entry_id: int, request: Request, db: Session = Depends(get_db)):
+    users = db.query(User).all()
+    entry = db.query(JournalEntry).filter(JournalEntry.id == entry_id).first()
+    if not entry:
+        raise HTTPException(status_code=404, detail="Journal entry not found")
+    
+    return templates.TemplateResponse("edit_journal.html", {
+        "request": request,
+        "users": users,
+        "entry": entry
+    })
+
+@router.post("/web/journal/edit/{entry_id}")
+async def edit_journal_web(
+    entry_id: int,
+    user_id: int = Form(...),
+    date: str = Form(...),
+    title: Optional[str] = Form(None),
+    location: Optional[str] = Form(None),
+    context: str = Form(...),
+    parental_input: Optional[str] = Form(None),
+    ai_analysis: Optional[str] = Form(None),
+    tags: Optional[str] = Form(None),
+    db: Session = Depends(get_db)
+):
+    entry = db.query(JournalEntry).filter(JournalEntry.id == entry_id).first()
+    if not entry:
+        raise HTTPException(status_code=404, detail="Journal entry not found")
+    
+    # Update entry
+    entry.user_id = user_id
+    entry.date = parse_optional_date(date)
+    entry.title = clean_optional_string(title)
+    entry.location = clean_optional_string(location)
+    entry.context = context
+    entry.parental_input = clean_optional_string(parental_input)
+    entry.ai_analysis = clean_optional_string(ai_analysis)
+    entry.tags = clean_optional_string(tags)
+    
+    try:
+        db.commit()
+        return RedirectResponse(url="/web/journal", status_code=303)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.post("/web/journal/delete/{entry_id}")
+async def delete_journal_entry(entry_id: int, db: Session = Depends(get_db)):
+    entry = db.query(JournalEntry).filter(JournalEntry.id == entry_id).first()
+    if not entry:
+        raise HTTPException(status_code=404, detail="Journal entry not found")
+    
+    db.delete(entry)
+    db.commit()
+    return RedirectResponse(url="/web/journal", status_code=303)

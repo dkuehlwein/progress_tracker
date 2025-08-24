@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from api import reading, drawing, fitness, users, web
+from api import reading, drawing, fitness, journal, users, web
 from database.config import engine, Base
 from config import APP_NAME, APP_DESCRIPTION, APP_VERSION, DEBUG
 from utils.logging import setup_logging, get_logger
@@ -36,6 +36,7 @@ app.include_router(users.router, prefix="/api/users", tags=["users"])
 app.include_router(reading.router, prefix="/api/reading", tags=["reading"])
 app.include_router(drawing.router, prefix="/api/drawing", tags=["drawing"])
 app.include_router(fitness.router, prefix="/api/fitness", tags=["fitness"])
+app.include_router(journal.router, prefix="/api/journal", tags=["journal"])
 
 # Include web interface
 app.include_router(web.router)

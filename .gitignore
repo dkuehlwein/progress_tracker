@@ -207,3 +207,4 @@ marimo/_lsp/
 __marimo__/
 
 main_app/web/static/uploads
+backups/

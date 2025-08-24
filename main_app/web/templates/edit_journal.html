@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Journal Entry - Progress Tracker{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <a href="/web/journal" style="color: #667eea; text-decoration: none; font-size: 1.5rem;">←</a>
+            <h2 class="card-title">✏️ Edit Journal Entry</h2>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <form action="/web/journal/edit/{{ entry.id }}" method="POST">
+        <!-- Basic Information Section -->
+        <div class="form-section">
+            <div class="form-section-title">📝 Basic Information</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="user_id" class="form-label required">User</label>
+                    <select name="user_id" id="user_id" class="form-select" required>
+                        <option value="">Select User</option>
+                        {% for user in users %}
+                        <option value="{{ user.id }}" {% if entry.user_id == user.id %}selected{% endif %}>
+                            {% if user.name == "simon" %}🧒{% else %}👨{% endif %} {{ user.display_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="date" class="form-label required">Date</label>
+                    <input type="date" name="date" id="date" class="form-input" value="{{ entry.date.strftime('%Y-%m-%d') }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="location" class="form-label">Location</label>
+                    <input type="text" name="location" id="location" class="form-input" value="{{ entry.location or '' }}" 
+                           placeholder="e.g., Home, Bonn">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="title" class="form-label">Title (Optional)</label>
+                <input type="text" name="title" id="title" class="form-input" value="{{ entry.title or '' }}" 
+                       placeholder="Brief description for easy reference">
+            </div>
+        </div>
+
+        <!-- Main Content Section -->
+        <div class="form-section">
+            <div class="form-section-title">📋 Observations & Context</div>
+            <div class="form-group">
+                <label for="context" class="form-label required">Context & Observations</label>
+                <textarea name="context" id="context" class="form-textarea" rows="10" required>{{ entry.context }}</textarea>
+                <div class="form-hint">
+                    💡 Be detailed and specific. Include timing, setting, what led up to events, responses, and outcomes.
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Input Section -->
+        <div class="form-section collapsible-section">
+            <div class="form-section-title collapsible-header {% if entry.parental_input or entry.ai_analysis %}expanded{% endif %}" onclick="toggleSection('additional-input')">
+                <span>👨‍👩‍👧 Additional Input & Analysis</span>
+                <span class="toggle-icon">{% if entry.parental_input or entry.ai_analysis %}▲{% else %}▼{% endif %}</span>
+            </div>
+            <div class="collapsible-content" id="additional-input" {% if not entry.parental_input and not entry.ai_analysis %}style="display: none;"{% endif %}>
+                <div class="form-group">
+                    <label for="parental_input" class="form-label">Parental Notes & Observations</label>
+                    <textarea name="parental_input" id="parental_input" class="form-textarea" rows="6">{{ entry.parental_input or '' }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="ai_analysis" class="form-label">Structured Analysis</label>
+                    <textarea name="ai_analysis" id="ai_analysis" class="form-textarea" rows="8">{{ entry.ai_analysis or '' }}</textarea>
+                    <div class="form-hint">
+                        💡 Include key observations, patterns, environmental factors, and developmental notes.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tags Section -->
+        <div class="form-section">
+            <div class="form-section-title">🏷️ Tags & Categories</div>
+            <div class="form-group">
+                <label class="form-label">Entry Type</label>
+                <div class="tag-selection">
+                    {% set entry_tags = entry.tags.split(',') if entry.tags else [] %}
+                    <label class="tag-checkbox">
+                        <input type="checkbox" name="tag-conflict" value="conflict" {% if 'conflict' in entry_tags %}checked{% endif %} onchange="updateTags()">
+                        <span class="tag-label conflict">⚡ Conflict</span>
+                    </label>
+                    <label class="tag-checkbox">
+                        <input type="checkbox" name="tag-achievement" value="achievement" {% if 'achievement' in entry_tags %}checked{% endif %} onchange="updateTags()">
+                        <span class="tag-label achievement">🌟 Achievement</span>
+                    </label>
+                </div>
+                <input type="hidden" name="tags" id="tags" value="{{ entry.tags or '' }}">
+                <div class="form-hint">
+                    Select relevant tags to categorize this entry for easier filtering and analysis.
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">✏️ Update Journal Entry</button>
+            <a href="/web/journal" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+// Collapsible sections
+function toggleSection(sectionId) {
+    const content = document.getElementById(sectionId);
+    const header = content.previousElementSibling;
+    const icon = header.querySelector('.toggle-icon');
+    
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        icon.textContent = '▲';
+        header.classList.add('expanded');
+    } else {
+        content.style.display = 'none';
+        icon.textContent = '▼';
+        header.classList.remove('expanded');
+    }
+}
+
+// Tag management
+function updateTags() {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"][name^="tag-"]');
+    const selectedTags = [];
+    
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked) {
+            selectedTags.push(checkbox.value);
+        }
+    });
+    
+    document.getElementById('tags').value = selectedTags.join(',');
+}
+
+// Auto-resize textareas
+document.querySelectorAll('.form-textarea').forEach(textarea => {
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
+    
+    // Initial resize
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+});
+</script>
+{% endblock %}

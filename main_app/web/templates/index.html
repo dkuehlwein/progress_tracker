@@ -30,14 +30,16 @@
         <a href="/web" style="text-decoration: none; color: #667eea;">← All Users</a>
     </div>
     
-    <!-- Quick Actions in Header -->
+    <!-- Quick Actions for Selected User -->
     <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
         {% if selected_user.name == "simon" %}
-        <a href="/web/reading?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">📚 Add Book</a>
-        <a href="/web/drawing?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">🎨 Add Art</a>
+        <a href="/web/reading/add?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">📚 Add Book</a>
+        <a href="/web/drawing/add?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">🎨 Add Art</a>
+        <a href="/web/journal/add?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">📝 Add Journal</a>
         {% else %}
-        <a href="/web/fitness?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">💪 Add Workout</a>
-        <a href="/web/reading?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">📚 Add Book</a>
+        <a href="/web/fitness/add?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">💪 Add Workout</a>
+        <a href="/web/reading/add?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">📚 Add Book</a>
+        <a href="/web/journal/add?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">📝 Add Journal</a>
         {% endif %}
     </div>
 </div>
@@ -83,15 +85,21 @@
 
 
 {% else %}
-<!-- Default quick actions for all users -->
+<!-- All Users dashboard -->
 <div class="card" style="margin-bottom: var(--spacing-lg);">
-    <div class="card-header">
-        <h3 class="card-title">🚀 Quick Actions</h3>
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+        <div>
+            <h2 style="margin: 0;">📊 Progress Tracker Dashboard</h2>
+            <p style="margin: 0; color: #6c757d;">Track progress across all areas</p>
+        </div>
     </div>
-    <div class="three-column">
-        <a href="/web/reading" class="btn btn-primary" style="text-decoration: none; text-align: center;">📚 Reading</a>
-        <a href="/web/drawing" class="btn btn-primary" style="text-decoration: none; text-align: center;">🎨 Drawing</a>
-        <a href="/web/fitness" class="btn btn-primary" style="text-decoration: none; text-align: center;">💪 Fitness</a>
+    
+    <!-- Quick Action Buttons -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem;">
+        <a href="/web/reading/add" class="btn btn-primary" style="text-decoration: none; text-align: center; padding: 1rem;">📚 Add Reading</a>
+        <a href="/web/drawing/add" class="btn btn-primary" style="text-decoration: none; text-align: center; padding: 1rem;">🎨 Add Drawing</a>
+        <a href="/web/fitness/add" class="btn btn-primary" style="text-decoration: none; text-align: center; padding: 1rem;">💪 Add Fitness</a>
+        <a href="/web/journal/add" class="btn btn-primary" style="text-decoration: none; text-align: center; padding: 1rem;">📝 Add Journal</a>
     </div>
 </div>
 {% endif %}

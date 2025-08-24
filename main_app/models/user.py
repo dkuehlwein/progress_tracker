@@ -16,3 +16,4 @@ class User(Base):
     reading_entries = relationship("ReadingEntry", back_populates="user")
     drawing_entries = relationship("DrawingEntry", back_populates="user")
     fitness_entries = relationship("FitnessEntry", back_populates="user")
+    journal_entries = relationship("JournalEntry", back_populates="user")

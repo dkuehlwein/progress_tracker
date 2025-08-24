@@ -3,6 +3,7 @@ from .user import User
 from .reading import ReadingEntry
 from .drawing import DrawingEntry
 from .fitness import FitnessEntry
+from .journal import JournalEntry
 
 # Enums are centralized in enums.py
 from enums import (
@@ -15,5 +16,6 @@ __all__ = [
     "User",
     "ReadingEntry", "ReadingStatus", "ReadingType",
     "DrawingEntry", "DrawingStatus", "DrawingMedium", 
-    "FitnessEntry", "FitnessStatus", "FitnessType"
+    "FitnessEntry", "FitnessStatus", "FitnessType",
+    "JournalEntry"
 ]
