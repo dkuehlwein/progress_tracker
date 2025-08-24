@@ -998,7 +998,6 @@ async def edit_entry(
     equipment_used: Optional[str] = None,
     # Journal fields
     date: Optional[str] = None,
-    context: Optional[str] = None,
     parental_input: Optional[str] = None,
     ai_analysis: Optional[str] = None,
     tags: Optional[str] = None
