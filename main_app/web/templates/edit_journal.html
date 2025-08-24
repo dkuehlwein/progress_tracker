@@ -62,23 +62,18 @@
         </div>
 
         <!-- Additional Input Section -->
-        <div class="form-section collapsible-section">
-            <div class="form-section-title collapsible-header {% if entry.parental_input or entry.ai_analysis %}expanded{% endif %}" onclick="toggleSection('additional-input')">
-                <span>👨‍👩‍👧 Additional Input & Analysis</span>
-                <span class="toggle-icon">{% if entry.parental_input or entry.ai_analysis %}▲{% else %}▼{% endif %}</span>
+        <div class="form-section">
+            <div class="form-section-title">👨‍👩‍👧 Additional Input & Analysis</div>
+            <div class="form-group">
+                <label for="parental_input" class="form-label">Parental Notes & Observations</label>
+                <textarea name="parental_input" id="parental_input" class="form-textarea" rows="6">{{ entry.parental_input or '' }}</textarea>
             </div>
-            <div class="collapsible-content" id="additional-input" {% if not entry.parental_input and not entry.ai_analysis %}style="display: none;"{% endif %}>
-                <div class="form-group">
-                    <label for="parental_input" class="form-label">Parental Notes & Observations</label>
-                    <textarea name="parental_input" id="parental_input" class="form-textarea" rows="6">{{ entry.parental_input or '' }}</textarea>
-                </div>
 
-                <div class="form-group">
-                    <label for="ai_analysis" class="form-label">Structured Analysis</label>
-                    <textarea name="ai_analysis" id="ai_analysis" class="form-textarea" rows="8">{{ entry.ai_analysis or '' }}</textarea>
-                    <div class="form-hint">
-                        💡 Include key observations, patterns, environmental factors, and developmental notes.
-                    </div>
+            <div class="form-group">
+                <label for="ai_analysis" class="form-label">Structured Analysis</label>
+                <textarea name="ai_analysis" id="ai_analysis" class="form-textarea" rows="8">{{ entry.ai_analysis or '' }}</textarea>
+                <div class="form-hint">
+                    💡 Include key observations, patterns, environmental factors, and developmental notes.
                 </div>
             </div>
         </div>

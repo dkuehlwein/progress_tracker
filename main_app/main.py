@@ -29,7 +29,17 @@ logger.info(f"Starting {APP_NAME} API v{APP_VERSION}")
 app.mount("/static", StaticFiles(directory="web/static"), name="static")
 
 # Templates
+import markdown
 templates = Jinja2Templates(directory="web/templates")
+
+# Add markdown filter
+def markdown_filter(text):
+    """Convert markdown text to HTML"""
+    if text:
+        return markdown.markdown(text)
+    return ''
+
+templates.env.filters['markdown'] = markdown_filter
 
 # Include API routers
 app.include_router(users.router, prefix="/api/users", tags=["users"])

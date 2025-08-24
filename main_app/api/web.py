@@ -15,6 +15,16 @@ from utils.validation import parse_optional_int, parse_optional_float, parse_opt
 router = APIRouter()
 templates = Jinja2Templates(directory="web/templates")
 
+# Add markdown filter
+import markdown
+def markdown_filter(text):
+    """Convert markdown text to HTML"""
+    if text:
+        return markdown.markdown(text)
+    return ''
+
+templates.env.filters['markdown'] = markdown_filter
+
 @router.get("/web", response_class=HTMLResponse)
 async def web_home(request: Request, user_id: Optional[int] = None, db: Session = Depends(get_db)):
     """Main dashboard page - shows user-specific or all users' data"""
