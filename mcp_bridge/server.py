@@ -820,7 +820,7 @@ async def add_journal_entry(
         location: Location where observations were made
         parental_input: Additional parent observations/notes
         ai_analysis: Structured analysis (behavioral patterns, etc.)
-        tags: Comma-separated tags (conflict, achievement)
+        tags: Comma-separated tags (conflict or achievement preferred, max 3 tags)
     """
     try:
         # Get user
