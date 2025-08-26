@@ -3,13 +3,22 @@
 
 import asyncio
 import httpx
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 async def test_api_connection():
     """Test connection to the main app API"""
     try:
+        # Get URL from environment
+        main_app_url = os.getenv("MAIN_APP_URL", "http://localhost:9000")
+        print(f"🔗 Testing connection to: {main_app_url}")
+        
         async with httpx.AsyncClient() as client:
             # Test basic connection
-            response = await client.get("http://127.0.0.1:8000/api/users/")
+            response = await client.get(f"{main_app_url}/api/users/")
             users = response.json()
             print(f"✅ API Connection successful! Found {len(users)} users:")
             for user in users:
@@ -24,7 +33,7 @@ async def test_api_connection():
                 "notes": "Added via MCP bridge test"
             }
             
-            response = await client.post("http://127.0.0.1:8000/api/reading/", json=reading_data)
+            response = await client.post(f"{main_app_url}/api/reading/", json=reading_data)
             result = response.json()
             print(f"✅ Reading entry created: {result['title']}")
             
@@ -36,6 +45,7 @@ async def test_api_connection():
 
 async def main():
     print("🧪 Testing MCP Bridge...")
+    main_app_url = os.getenv("MAIN_APP_URL", "http://localhost:9000")
     api_ok = await test_api_connection()
     
     if api_ok:
@@ -48,14 +58,14 @@ async def main():
         print('      "command": "python",')
         print(f'      "args": ["{__file__}/../server.py"],')
         print('      "env": {')
-        print('        "MAIN_APP_URL": "http://127.0.0.1:8000"')
+        print(f'        "MAIN_APP_URL": "{main_app_url}"')
         print('      }')
         print('    }')
         print('  }')
         print('}')
         print('```')
     else:
-        print("❌ Tests failed. Make sure the main app is running on http://127.0.0.1:8000")
+        print(f"❌ Tests failed. Make sure the main app is running on {main_app_url}")
 
 if __name__ == "__main__":
     asyncio.run(main())
