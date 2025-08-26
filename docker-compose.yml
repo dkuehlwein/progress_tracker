@@ -14,7 +14,7 @@ services:
   progress-tracker:
     build: .
     ports:
-      - "8000:8000"
+      - "${APP_PORT:-9000}:8000"
     environment:
       DATABASE_URL: postgresql+psycopg://progress_user:progress_password@postgres:5432/progress_tracker
     depends_on:

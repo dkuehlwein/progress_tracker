@@ -18,7 +18,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Configuration
-MAIN_APP_URL = os.getenv("MAIN_APP_URL", "http://localhost:8000")
+APP_PORT = os.getenv("APP_PORT", "9000")
+MAIN_APP_URL = os.getenv("MAIN_APP_URL", f"http://localhost:{APP_PORT}")
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
 # Setup logging
