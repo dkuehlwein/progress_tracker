@@ -1072,7 +1072,9 @@ async def edit_entry(
             'next_goals': next_goals, 'calories_burned': calories_burned,
             'heart_rate_avg': heart_rate_avg, 'heart_rate_max': heart_rate_max,
             'perceived_effort': perceived_effort, 'weather': weather,
-            'equipment_used': equipment_used
+            'equipment_used': equipment_used,
+            # Journal fields
+            'date': date, 'parental_input': parental_input, 'ai_analysis': ai_analysis, 'tags': tags
         }
         
         # Add category-specific fields

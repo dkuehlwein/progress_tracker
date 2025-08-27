@@ -37,6 +37,33 @@ async def test_api_connection():
             result = response.json()
             print(f"✅ Reading entry created: {result['title']}")
             
+            # Test adding a journal entry
+            journal_data = {
+                "user_id": 1,
+                "date": "2024-08-27",
+                "context": "Test journal entry for MCP bridge testing",
+                "title": "Test Journal Entry",
+                "tags": "test"
+            }
+            
+            response = await client.post(f"{main_app_url}/api/journal/", json=journal_data)
+            journal_result = response.json()
+            journal_id = journal_result['id']
+            print(f"✅ Journal entry created: {journal_result['title']}")
+            
+            # Test editing the journal entry with ai_analysis field only
+            edit_data = {
+                "ai_analysis": "**Test Analysis**\n\nThis is a test of editing journal entries with ai_analysis field only."
+            }
+            
+            response = await client.put(f"{main_app_url}/api/journal/{journal_id}", json=edit_data)
+            if response.status_code == 200:
+                edit_result = response.json()
+                print(f"✅ Journal entry edited with ai_analysis: Entry {journal_id}")
+            else:
+                print(f"❌ Journal entry edit failed: {response.status_code} - {response.text}")
+                return False
+            
             return True
             
     except Exception as e:
