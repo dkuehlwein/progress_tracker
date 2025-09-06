@@ -77,13 +77,12 @@
             </div>
         </div>
         
-        <div class="form-section optional">
-            <div class="form-section-title toggle-section">
-                <span class="toggle-icon">▶</span>
+        <div class="form-section">
+            <div class="form-section-title">
                 📝 Additional Details
                 <span class="optional-badge">Optional</span>
             </div>
-            <div class="collapsible-content">
+            <div class="form-content">
                 <div class="form-grid">
                     <div class="form-group full-width">
                         <label for="context" class="form-label">Context</label>
@@ -182,20 +181,5 @@ function previewImage(file) {
     reader.readAsDataURL(file);
 }
 
-// Collapsible sections
-document.querySelectorAll('.toggle-section').forEach(section => {
-    section.addEventListener('click', function() {
-        const content = this.nextElementSibling;
-        const icon = this.querySelector('.toggle-icon');
-        
-        if (content.style.display === 'none' || content.style.display === '') {
-            content.style.display = 'block';
-            icon.textContent = '▼';
-        } else {
-            content.style.display = 'none';
-            icon.textContent = '▶';
-        }
-    });
-});
 </script>
 {% endblock %}

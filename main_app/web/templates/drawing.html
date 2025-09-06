@@ -140,7 +140,8 @@
                             <p><strong>Context (User):</strong> {{ entry.context }}</p>
                             {% endif %}
                             {% if entry.technical_notes %}
-                            <p><strong>Technical Notes (AI Analysis):</strong> {{ entry.technical_notes }}</p>
+                            <p><strong>Technical Notes (AI Analysis):</strong></p>
+                            <div class="markdown-content">{{ entry.technical_notes|markdown|safe }}</div>
                             {% endif %}
                         </td>
                     </tr>

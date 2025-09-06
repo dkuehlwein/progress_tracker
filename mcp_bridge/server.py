@@ -198,9 +198,9 @@ def format_reading_entry(entry: Dict, entry_id: str, user_name: str) -> str:
     pause_reason = entry.get('pause_reason', '')
     notes_info = []
     if notes:
-        notes_info.append(f"Notes: {notes[:50]}{'...' if len(notes) > 50 else ''}")
+        notes_info.append(f"Notes: {notes}")
     if pause_reason:
-        notes_info.append(f"Pause reason: {pause_reason[:40]}{'...' if len(pause_reason) > 40 else ''}")
+        notes_info.append(f"Pause reason: {pause_reason}")
     
     notes_str = f"\n    {' | '.join(notes_info)}" if notes_info else ""
     
@@ -238,13 +238,13 @@ def format_drawing_entry(entry: Dict, entry_id: str, user_name: str) -> str:
     
     notes_info = []
     if context:
-        notes_info.append(f"Context: {context[:50]}{'...' if len(context) > 50 else ''}")
+        notes_info.append(f"Context: {context}")
     if technical_notes:
-        notes_info.append(f"AI Notes: {technical_notes[:50]}{'...' if len(technical_notes) > 50 else ''}")
+        notes_info.append(f"AI Notes: {technical_notes}")
     if notes:
-        notes_info.append(f"Notes: {notes[:50]}{'...' if len(notes) > 50 else ''}")
+        notes_info.append(f"Notes: {notes}")
     if completion_notes:
-        notes_info.append(f"Completion: {completion_notes[:40]}{'...' if len(completion_notes) > 40 else ''}")
+        notes_info.append(f"Completion: {completion_notes}")
     
     notes_str = f"\n    {' | '.join(notes_info)}" if notes_info else ""
     
@@ -270,9 +270,9 @@ def format_fitness_entry(entry: Dict, entry_id: str, user_name: str) -> str:
     achievements = entry.get('achievements', '')
     notes_info = []
     if notes:
-        notes_info.append(f"Notes: {notes[:50]}{'...' if len(notes) > 50 else ''}")
+        notes_info.append(f"Notes: {notes}")
     if achievements:
-        notes_info.append(f"Achievements: {achievements[:40]}{'...' if len(achievements) > 40 else ''}")
+        notes_info.append(f"Achievements: {achievements}")
     
     notes_str = f"\n    {' | '.join(notes_info)}" if notes_info else ""
     
@@ -293,7 +293,7 @@ def format_journal_entry(entry: Dict, entry_id: str, user_name: str) -> str:
     
     # Context preview
     context = entry.get('context', '')
-    context_preview = context[:80] + '...' if len(context) > 80 else context
+    context_preview = context
     
     # Build additional info
     info_parts = []
