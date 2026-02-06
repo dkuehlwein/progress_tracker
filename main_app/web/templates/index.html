@@ -2,127 +2,119 @@
 
 {% block content %}
 {% if not users %}
-<div class="alert alert-info" style="margin-bottom: var(--spacing-lg);">
-    <span>ℹ️</span>
+<div class="alert alert-info">
+    <span aria-hidden="true">ℹ️</span>
     <span>No users found. Create users via the API first.</span>
 </div>
 {% endif %}
 
 {% if selected_user %}
 <!-- User-specific dashboard -->
-<div class="card" style="margin-bottom: var(--spacing-lg);">
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <span style="font-size: 3rem;">
-                {% if selected_user.name == "simon" %}🧒{% else %}👨{% endif %}
-            </span>
-            <div>
-                <h2 style="margin: 0;">{{ selected_user.display_name }}'s Dashboard</h2>
-                <p style="margin: 0; color: #6c757d;">
-                    {% if selected_user.name == "simon" %}
-                        Reading & Drawing Progress
-                    {% else %}
-                        Fitness & Health Tracking
-                    {% endif %}
-                </p>
-            </div>
+<div class="card">
+    <div class="user-profile">
+        <div class="user-avatar" aria-hidden="true">
+            {% if selected_user.name == "simon" %}🧒{% else %}👨{% endif %}
         </div>
-        <a href="/web" style="text-decoration: none; color: #667eea;">← All Users</a>
+        <div class="user-info">
+            <h2>{{ selected_user.display_name }}'s Dashboard</h2>
+            <p>
+                {% if selected_user.name == "simon" %}
+                    Reading & Drawing Progress
+                {% else %}
+                    Fitness & Health Tracking
+                {% endif %}
+            </p>
+        </div>
+        <a href="/web" class="back-link" aria-label="View all users">&larr; All Users</a>
     </div>
-    
+
     <!-- Quick Actions for Selected User -->
-    <div style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+    <div class="quick-actions">
         {% if selected_user.name == "simon" %}
-        <a href="/web/reading/add?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">📚 Add Book</a>
-        <a href="/web/drawing/add?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">🎨 Add Art</a>
-        <a href="/web/journal/add?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">📝 Add Journal</a>
+        <a href="/web/reading/add?user_id={{ selected_user.id }}" class="btn"><span aria-hidden="true">📚</span> Add Book</a>
+        <a href="/web/drawing/add?user_id={{ selected_user.id }}" class="btn"><span aria-hidden="true">🎨</span> Add Art</a>
+        <a href="/web/journal/add?user_id={{ selected_user.id }}" class="btn"><span aria-hidden="true">📝</span> Add Journal</a>
         {% else %}
-        <a href="/web/fitness/add?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">💪 Add Workout</a>
-        <a href="/web/reading/add?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">📚 Add Book</a>
-        <a href="/web/journal/add?user_id={{ selected_user.id }}" class="btn btn-primary" style="text-decoration: none; flex: 1; min-width: 120px; text-align: center;">📝 Add Journal</a>
+        <a href="/web/fitness/add?user_id={{ selected_user.id }}" class="btn"><span aria-hidden="true">💪</span> Add Workout</a>
+        <a href="/web/reading/add?user_id={{ selected_user.id }}" class="btn"><span aria-hidden="true">📚</span> Add Book</a>
+        <a href="/web/journal/add?user_id={{ selected_user.id }}" class="btn"><span aria-hidden="true">📝</span> Add Journal</a>
         {% endif %}
     </div>
 </div>
 
 <!-- Monthly Stats -->
-<div class="card" style="margin-bottom: var(--spacing-lg);">
-    <h3>📊 This Month's Progress</h3>
-    
+<div class="card">
+    <h3><span aria-hidden="true">📊</span> This Month's Progress</h3>
+
     {% if selected_user.name == "simon" %}
-    <div class="two-column">
-        <div style="text-align: center; padding: 1rem; background: #f8f9ff; border-radius: 8px;">
-            <div style="font-size: 2rem; color: #667eea; font-weight: bold;">{{ monthly_stats.reading_count }}</div>
-            <div style="color: #6c757d;">Books Started</div>
-            <div style="font-size: 0.9rem; color: #28a745;">{{ monthly_stats.reading_completed }} completed</div>
+    <div class="stats-grid" style="margin-top:var(--sp-4)">
+        <div class="stat-card">
+            <div class="stat-number">{{ monthly_stats.reading_count }}</div>
+            <div class="stat-label">Books Started</div>
+            <div class="stat-sublabel">{{ monthly_stats.reading_completed }} completed</div>
         </div>
-        <div style="text-align: center; padding: 1rem; background: #fff5f5; border-radius: 8px;">
-            <div style="font-size: 2rem; color: #e74c3c; font-weight: bold;">{{ monthly_stats.drawing_count }}</div>
-            <div style="color: #6c757d;">Art Projects</div>
-            <div style="font-size: 0.9rem; color: #28a745;">{{ monthly_stats.total_drawing_hours | round(1) }}h total</div>
+        <div class="stat-card">
+            <div class="stat-number" style="color:var(--error)">{{ monthly_stats.drawing_count }}</div>
+            <div class="stat-label">Art Projects</div>
+            <div class="stat-sublabel">{{ monthly_stats.total_drawing_hours | round(1) }}h total</div>
         </div>
     </div>
     {% else %}
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
-        <div style="text-align: center; padding: 1rem; background: #f0fff4; border-radius: 8px;">
-            <div style="font-size: 2rem; color: #28a745; font-weight: bold;">{{ monthly_stats.fitness_count }}</div>
-            <div style="color: #6c757d;">Activities</div>
+    <div class="stats-grid" style="margin-top:var(--sp-4)">
+        <div class="stat-card">
+            <div class="stat-number" style="color:var(--success)">{{ monthly_stats.fitness_count }}</div>
+            <div class="stat-label">Activities</div>
         </div>
-        <div style="text-align: center; padding: 1rem; background: #f8f9ff; border-radius: 8px;">
-            <div style="font-size: 2rem; color: #667eea; font-weight: bold;">{{ (monthly_stats.total_minutes / 60) | round(1) }}</div>
-            <div style="color: #6c757d;">Hours</div>
+        <div class="stat-card">
+            <div class="stat-number">{{ (monthly_stats.total_minutes / 60) | round(1) }}</div>
+            <div class="stat-label">Hours</div>
         </div>
-        <div style="text-align: center; padding: 1rem; background: #fff5f5; border-radius: 8px;">
-            <div style="font-size: 2rem; color: #e74c3c; font-weight: bold;">{{ monthly_stats.total_distance | round(1) }}</div>
-            <div style="color: #6c757d;">Kilometers</div>
+        <div class="stat-card">
+            <div class="stat-number" style="color:var(--error)">{{ monthly_stats.total_distance | round(1) }}</div>
+            <div class="stat-label">Kilometers</div>
         </div>
-        <div style="text-align: center; padding: 1rem; background: #fffbf0; border-radius: 8px;">
-            <div style="font-size: 2rem; color: #f39c12; font-weight: bold;">{{ monthly_stats.fitness_completed }}</div>
-            <div style="color: #6c757d;">Completed</div>
+        <div class="stat-card">
+            <div class="stat-number" style="color:var(--warning)">{{ monthly_stats.fitness_completed }}</div>
+            <div class="stat-label">Completed</div>
         </div>
     </div>
     {% endif %}
 </div>
 
-
 {% else %}
 <!-- All Users dashboard -->
-<div class="card" style="margin-bottom: var(--spacing-lg);">
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-        <div>
-            <h2 style="margin: 0;">📊 Progress Tracker Dashboard</h2>
-            <p style="margin: 0; color: #6c757d;">Track progress across all areas</p>
-        </div>
-    </div>
-    
-    <!-- Quick Action Buttons -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem;">
-        <a href="/web/reading/add" class="btn btn-primary" style="text-decoration: none; text-align: center; padding: 1rem;">📚 Add Reading</a>
-        <a href="/web/drawing/add" class="btn btn-primary" style="text-decoration: none; text-align: center; padding: 1rem;">🎨 Add Drawing</a>
-        <a href="/web/fitness/add" class="btn btn-primary" style="text-decoration: none; text-align: center; padding: 1rem;">💪 Add Fitness</a>
-        <a href="/web/journal/add" class="btn btn-primary" style="text-decoration: none; text-align: center; padding: 1rem;">📝 Add Journal</a>
+<div class="card">
+    <h2><span aria-hidden="true">📊</span> Progress Tracker Dashboard</h2>
+    <p class="text-muted">Track progress across all areas</p>
+
+    <div class="quick-actions">
+        <a href="/web/reading/add" class="btn"><span aria-hidden="true">📚</span> Add Reading</a>
+        <a href="/web/drawing/add" class="btn"><span aria-hidden="true">🎨</span> Add Drawing</a>
+        <a href="/web/fitness/add" class="btn"><span aria-hidden="true">💪</span> Add Fitness</a>
+        <a href="/web/journal/add" class="btn"><span aria-hidden="true">📝</span> Add Journal</a>
     </div>
 </div>
 {% endif %}
 
 {% if selected_user %}
 <!-- Historical Charts -->
-<div class="card" style="margin-bottom: var(--spacing-lg);">
-    <h3>📈 Progress Over Time (Last 6 Months)</h3>
+<div class="card">
+    <h3><span aria-hidden="true">📈</span> Progress Over Time (Last 6 Months)</h3>
     {% if selected_user.name == "simon" %}
-    <div class="two-column">
+    <div class="two-column" style="margin-top:var(--sp-4)">
         <div>
-            <h4 style="margin-bottom: 1rem;">📚 Books Completed</h4>
-            <div id="readingChart" style="height: 200px; position: relative;"></div>
+            <h4><span aria-hidden="true">📚</span> Books Completed</h4>
+            <div id="readingChart" class="chart-container"></div>
         </div>
         <div>
-            <h4 style="margin-bottom: 1rem;">🎨 Artworks Finished</h4>
-            <div id="drawingChart" style="height: 200px; position: relative;"></div>
+            <h4><span aria-hidden="true">🎨</span> Artworks Finished</h4>
+            <div id="drawingChart" class="chart-container"></div>
         </div>
     </div>
     {% else %}
-    <div>
-        <h4 style="margin-bottom: 1rem;">💪 Fitness Activities Completed</h4>
-        <div id="fitnessChart" style="height: 200px; position: relative;"></div>
+    <div style="margin-top:var(--sp-4)">
+        <h4><span aria-hidden="true">💪</span> Fitness Activities Completed</h4>
+        <div id="fitnessChart" class="chart-container"></div>
     </div>
     {% endif %}
 </div>
@@ -132,122 +124,122 @@
     <div>
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">📚 Recent Reading</h3>
+                <h3 class="card-title"><span aria-hidden="true">📚</span> Recent Reading</h3>
                 {% if selected_user %}
-                <a href="/web/reading?user_id={{ selected_user.id }}" class="btn btn-outline btn-sm">View All →</a>
+                <a href="/web/reading?user_id={{ selected_user.id }}" class="btn btn-outline btn-sm">View All &rarr;</a>
                 {% else %}
-                <a href="/web/reading" class="btn btn-outline btn-sm">View All →</a>
+                <a href="/web/reading" class="btn btn-outline btn-sm">View All &rarr;</a>
                 {% endif %}
             </div>
             {% if recent_reading %}
                 {% for entry in recent_reading %}
-                <div class="entry-card clickable-entry" onclick="window.location.href='/web/reading/edit/{{ entry.id }}'" style="cursor: pointer;">
-                    <h4 class="entry-title">{{ entry.title }}</h4>
-                    {% if entry.author %}<p><strong>By:</strong> {{ entry.author }}</p>{% endif %}
-                    <div class="entry-meta">
+                <a href="/web/reading/edit/{{ entry.id }}" class="entry-card clickable-entry" style="display:block;text-decoration:none;color:inherit">
+                    <div class="entry-title">{{ entry.title }}</div>
+                    {% if entry.author %}<p style="padding:0 var(--sp-4);margin:0;color:var(--text-secondary)"><strong>By:</strong> {{ entry.author }}</p>{% endif %}
+                    <div class="entry-meta" style="padding:var(--sp-2) var(--sp-4) var(--sp-3)">
                         <span class="status-badge status-{{ entry.status.value.lower() }}">{{ entry.status.value.replace('_', ' ').title() }}</span>
                         {% if entry.length_pages %}
-                        <span>• {{ entry.length_pages }} pages</span>
+                        <span>&bull; {{ entry.length_pages }} pages</span>
                         {% endif %}
                         {% if entry.started_date %}
-                        <span>• Started {{ entry.started_date.strftime('%b %d, %Y') }}</span>
+                        <span>&bull; Started {{ entry.started_date.strftime('%b %d, %Y') }}</span>
                         {% endif %}
                         {% if not selected_user %}
                         {% set user = users | selectattr('id', 'equalto', entry.user_id) | first %}
                         {% if user %}
-                        <span>• {{ user.display_name }}</span>
+                        <span>&bull; {{ user.display_name }}</span>
                         {% endif %}
                         {% endif %}
                     </div>
-                </div>
+                </a>
                 {% endfor %}
             {% else %}
-                <div style="text-align: center; padding: var(--spacing-xl); color: var(--gray-500);">
-                    <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">📚</div>
+                <div class="empty-state">
+                    <div aria-hidden="true" style="font-size:2rem;margin-bottom:var(--sp-3)">📚</div>
                     <p>No reading entries yet.</p>
                 </div>
             {% endif %}
         </div>
-        
+
         {% if recent_fitness or not selected_user or selected_user.name != "simon" %}
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">💪 Recent Fitness</h3>
+                <h3 class="card-title"><span aria-hidden="true">💪</span> Recent Fitness</h3>
                 {% if selected_user %}
-                <a href="/web/fitness?user_id={{ selected_user.id }}" class="btn btn-outline btn-sm">View All →</a>
+                <a href="/web/fitness?user_id={{ selected_user.id }}" class="btn btn-outline btn-sm">View All &rarr;</a>
                 {% else %}
-                <a href="/web/fitness" class="btn btn-outline btn-sm">View All →</a>
+                <a href="/web/fitness" class="btn btn-outline btn-sm">View All &rarr;</a>
                 {% endif %}
             </div>
             {% if recent_fitness %}
                 {% for entry in recent_fitness %}
-                <div class="entry-card clickable-entry" onclick="window.location.href='/web/fitness/edit/{{ entry.id }}'" style="cursor: pointer;">
-                    <h4 class="entry-title">{{ entry.title }}</h4>
-                    {% if entry.activity_type %}<p><strong>Type:</strong> {{ entry.activity_type | title }}</p>{% endif %}
-                    <div class="entry-meta">
+                <a href="/web/fitness/edit/{{ entry.id }}" class="entry-card clickable-entry" style="display:block;text-decoration:none;color:inherit">
+                    <div class="entry-title">{{ entry.title }}</div>
+                    {% if entry.activity_type %}<p style="padding:0 var(--sp-4);margin:0;color:var(--text-secondary)"><strong>Type:</strong> {{ entry.activity_type | title }}</p>{% endif %}
+                    <div class="entry-meta" style="padding:var(--sp-2) var(--sp-4) var(--sp-3)">
                         <span class="status-badge status-{{ entry.status.value.lower() }}">{{ entry.status.value.replace('_', ' ').title() }}</span>
                         {% if entry.duration_minutes %}
-                        <span>• {{ entry.duration_minutes }} min</span>
+                        <span>&bull; {{ entry.duration_minutes }} min</span>
                         {% endif %}
                         {% if not selected_user %}
                         {% set user = users | selectattr('id', 'equalto', entry.user_id) | first %}
                         {% if user %}
-                        <span>• {{ user.display_name }}</span>
+                        <span>&bull; {{ user.display_name }}</span>
                         {% endif %}
                         {% endif %}
                     </div>
-                </div>
+                </a>
                 {% endfor %}
             {% else %}
-                <div style="text-align: center; padding: var(--spacing-xl); color: var(--gray-500);">
-                    <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">💪</div>
+                <div class="empty-state">
+                    <div aria-hidden="true" style="font-size:2rem;margin-bottom:var(--sp-3)">💪</div>
                     <p>No fitness entries yet.</p>
                 </div>
             {% endif %}
         </div>
         {% endif %}
     </div>
-    
+
     <div>
         {% if recent_drawing or not selected_user or selected_user.name == "simon" %}
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">🎨 Recent Drawing</h3>
+                <h3 class="card-title"><span aria-hidden="true">🎨</span> Recent Drawing</h3>
                 {% if selected_user %}
-                <a href="/web/drawing?user_id={{ selected_user.id }}" class="btn btn-outline btn-sm">View All →</a>
+                <a href="/web/drawing?user_id={{ selected_user.id }}" class="btn btn-outline btn-sm">View All &rarr;</a>
                 {% else %}
-                <a href="/web/drawing" class="btn btn-outline btn-sm">View All →</a>
+                <a href="/web/drawing" class="btn btn-outline btn-sm">View All &rarr;</a>
                 {% endif %}
             </div>
             {% if recent_drawing %}
                 {% for entry in recent_drawing %}
-                <div class="entry-card clickable-entry{% if entry.image_url %} has-image{% endif %}" onclick="window.location.href='/web/drawing/edit/{{ entry.id }}'" style="cursor: pointer;">
+                <a href="/web/drawing/edit/{{ entry.id }}" class="entry-card clickable-entry{% if entry.image_url %} has-image{% endif %}" style="display:flex;text-decoration:none;color:inherit">
                     {% if entry.image_url %}
-                    <div style="flex-shrink: 0;">
-                        <img src="{{ entry.image_url }}" alt="{{ entry.title }}" class="table-thumbnail" onclick="event.stopPropagation(); openImageModal(this.src)" style="width: 80px; height: 60px;">
+                    <div style="flex-shrink:0;padding:var(--sp-3)">
+                        <img src="{{ entry.image_url }}" alt="Drawing: {{ entry.title }}" class="table-thumbnail" onclick="event.preventDefault();event.stopPropagation();openImageModal(this.src,this.alt)">
                     </div>
                     {% endif %}
-                    <div style="flex: 1;">
-                        <h4 class="entry-title">{{ entry.title }}</h4>
-                        {% if entry.subject %}<p><strong>Subject:</strong> {{ entry.subject }}</p>{% endif %}
-                        <div class="entry-meta">
+                    <div style="flex:1">
+                        <div class="entry-title">{{ entry.title }}</div>
+                        {% if entry.subject %}<p style="padding:0 var(--sp-4);margin:0;color:var(--text-secondary)"><strong>Subject:</strong> {{ entry.subject }}</p>{% endif %}
+                        <div class="entry-meta" style="padding:var(--sp-2) var(--sp-4) var(--sp-3)">
                             <span class="status-badge status-{{ entry.status.value.lower() }}">{{ entry.status.value.replace('_', ' ').title() }}</span>
                             {% if entry.duration_hours %}
-                            <span>• {{ entry.duration_hours }}h</span>
+                            <span>&bull; {{ entry.duration_hours }}h</span>
                             {% endif %}
                             {% if not selected_user %}
                             {% set user = users | selectattr('id', 'equalto', entry.user_id) | first %}
                             {% if user %}
-                            <span>• {{ user.display_name }}</span>
+                            <span>&bull; {{ user.display_name }}</span>
                             {% endif %}
                             {% endif %}
                         </div>
                     </div>
-                </div>
+                </a>
                 {% endfor %}
             {% else %}
-                <div style="text-align: center; padding: var(--spacing-xl); color: var(--gray-500);">
-                    <div style="font-size: 2rem; margin-bottom: var(--spacing-sm);">🎨</div>
+                <div class="empty-state">
+                    <div aria-hidden="true" style="font-size:2rem;margin-bottom:var(--sp-3)">🎨</div>
                     <p>No drawing entries yet.</p>
                 </div>
             {% endif %}
@@ -258,85 +250,53 @@
 
 {% if selected_user %}
 <script>
-// Simple chart rendering function
 function renderChart(containerId, data, color) {
     const container = document.getElementById(containerId);
-    if (!container || !data || data.length === 0) {
-        container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #999;">No data available</div>';
+    if (!container) return;
+    if (!data || data.length === 0) {
+        container.innerHTML = '<div class="chart-empty">No data available</div>';
         return;
     }
-    
+
     const maxValue = Math.max(...data.map(d => d.count), 1);
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    
-    // Generate last 6 months
     const now = new Date();
     const chartData = [];
+
     for (let i = 5; i >= 0; i--) {
         const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const year = date.getFullYear();
         const month = date.getMonth() + 1;
-        const monthName = months[date.getMonth()];
-        
         const found = data.find(d => d.year === year && d.month === month);
-        chartData.push({
-            label: monthName,
-            count: found ? found.count : 0
-        });
+        chartData.push({ label: months[date.getMonth()], count: found ? found.count : 0 });
     }
-    
-    let html = '<div style="display: flex; align-items: end; justify-content: space-around; height: 100%; padding: 10px;">';
-    
+
+    let html = '<div class="chart-bars">';
     chartData.forEach(item => {
         const height = maxValue > 0 ? (item.count / maxValue) * 140 : 0;
-        html += `
-            <div style="display: flex; flex-direction: column; align-items: center; flex: 1; margin: 0 2px;">
-                <div style="background: ${color}; width: 100%; max-width: 30px; height: ${height}px; border-radius: 3px 3px 0 0; margin-bottom: 5px; display: flex; align-items: end; justify-content: center; color: white; font-size: 10px; font-weight: bold;">
-                    ${item.count > 0 ? item.count : ''}
-                </div>
-                <div style="font-size: 11px; color: #666;">${item.label}</div>
-            </div>
-        `;
+        html += '<div class="chart-bar-group">' +
+            '<div class="chart-bar" style="background:' + color + ';height:' + height + 'px">' +
+            (item.count > 0 ? item.count : '') +
+            '</div>' +
+            '<div class="chart-bar-label">' + item.label + '</div>' +
+            '</div>';
     });
-    
     html += '</div>';
     container.innerHTML = html;
 }
 
-// Chart data from backend
 {% if selected_user and selected_user.name == "simon" %}
-var readingData = {{ reading_history | tojson if reading_history else '[]' }};
-var drawingData = {{ drawing_history | tojson if drawing_history else '[]' }};
-renderChart('readingChart', readingData, '#667eea');
-renderChart('drawingChart', drawingData, '#e74c3c');
+renderChart('readingChart', {{ reading_history | tojson if reading_history else '[]' }}, 'var(--primary)');
+renderChart('drawingChart', {{ drawing_history | tojson if drawing_history else '[]' }}, 'var(--error)');
 {% elif selected_user %}
-var fitnessData = {{ fitness_history | tojson if fitness_history else '[]' }};
-renderChart('fitnessChart', fitnessData, '#28a745');
+renderChart('fitnessChart', {{ fitness_history | tojson if fitness_history else '[]' }}, 'var(--success)');
 {% endif %}
-
-// Image modal handling for drawing thumbnails
-function openImageModal(src) {
-    document.getElementById('modalImage').src = src;
-    document.getElementById('imageModal').style.display = 'flex';
-}
-
-function closeImageModal() {
-    document.getElementById('imageModal').style.display = 'none';
-}
-
-// Escape key to close modal
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-        closeImageModal();
-    }
-});
 </script>
 {% endif %}
 
 <!-- Image Modal -->
-<div id="imageModal" class="image-modal" style="display: none;" onclick="closeImageModal()">
-    <button class="close-btn" onclick="closeImageModal()">&times;</button>
-    <img id="modalImage" src="" alt="">
+<div id="imageModal" class="image-modal" style="display:none" onclick="closeImageModal()" role="dialog" aria-modal="true" aria-label="Image viewer" tabindex="-1" aria-hidden="true">
+    <button class="close-btn" onclick="closeImageModal()" aria-label="Close image viewer">&times;</button>
+    <img id="modalImage" src="" alt="Full size drawing">
 </div>
-
 {% endblock %}

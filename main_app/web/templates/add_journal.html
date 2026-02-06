@@ -5,18 +5,17 @@
 {% block content %}
 <div class="card">
     <div class="card-header">
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <a href="/web/journal" style="color: #667eea; text-decoration: none; font-size: 1.5rem;">←</a>
-            <h2 class="card-title">📝 Add Journal Entry</h2>
+        <div class="card-header-with-back">
+            <a href="/web/journal" class="back-link" aria-label="Back to journal entries">&larr;</a>
+            <h2 class="card-title"><span aria-hidden="true">📝</span> Add Journal Entry</h2>
         </div>
     </div>
 </div>
 
 <div class="card">
     <form action="/web/journal/add" method="POST">
-        <!-- Basic Information Section -->
         <div class="form-section">
-            <div class="form-section-title">📝 Basic Information</div>
+            <div class="form-section-title"><span aria-hidden="true">📝</span> Basic Information</div>
             <div class="form-grid">
                 <div class="form-group">
                     <label for="user_id" class="form-label required">User</label>
@@ -34,27 +33,26 @@
                     <label for="date" class="form-label required">Date</label>
                     <input type="date" name="date" id="date" class="form-input" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="location" class="form-label">Location</label>
-                    <input type="text" name="location" id="location" class="form-input" 
+                    <input type="text" name="location" id="location" class="form-input"
                            placeholder="e.g., Home, Bonn">
                 </div>
             </div>
 
             <div class="form-group">
                 <label for="title" class="form-label">Title (Optional)</label>
-                <input type="text" name="title" id="title" class="form-input" 
+                <input type="text" name="title" id="title" class="form-input"
                        placeholder="Brief description for easy reference">
             </div>
         </div>
 
-        <!-- Main Content Section -->
         <div class="form-section">
-            <div class="form-section-title">📋 Observations & Context</div>
+            <div class="form-section-title"><span aria-hidden="true">📋</span> Observations & Context</div>
             <div class="form-group">
                 <label for="context" class="form-label required">Context</label>
-                <textarea name="context" id="context" class="form-textarea" rows="5" required 
+                <textarea name="context" id="context" class="form-textarea" rows="5" required
                           placeholder="Detailed description of the situation, behaviors observed, environmental factors, timing, interactions, etc.
 
 Example format:
@@ -62,49 +60,50 @@ Example format:
 - Behavioral Sequence: [describe what happened step by step]
 - Environmental Factors: [setting, people present, circumstances]"></textarea>
                 <div class="form-hint">
-                    💡 Be detailed and specific. Include timing, setting, what led up to events, responses, and outcomes.
+                    Be detailed and specific. Include timing, setting, what led up to events, responses, and outcomes.
                 </div>
             </div>
         </div>
 
-        <!-- Additional Input Section -->
-        <div class="form-section">
-            <div class="form-section-title">👨‍👩‍👧 Additional Input & Analysis</div>
-            <div>
+        <div class="form-section optional">
+            <div class="form-section-title">
+                <span aria-hidden="true">👨‍👩‍👧</span> Additional Input & Analysis
+                <span class="optional-badge">Optional</span>
+            </div>
+            <div class="collapsible-content">
                 <div class="form-group">
                     <label for="parental_input" class="form-label">Parental Notes</label>
-                    <textarea name="parental_input" id="parental_input" class="form-textarea" rows="6" 
+                    <textarea name="parental_input" id="parental_input" class="form-textarea" rows="6"
                               placeholder="Additional observations, context, or notes from parents/caregivers"></textarea>
                 </div>
 
                 <div class="form-group">
                     <label for="ai_analysis" class="form-label">Structured Analysis</label>
-                    <textarea name="ai_analysis" id="ai_analysis" class="form-textarea" rows="8" 
+                    <textarea name="ai_analysis" id="ai_analysis" class="form-textarea" rows="8"
                               placeholder="Structured analysis including:
 - Key Observations: patterns, behaviors, responses
 - Environmental Factors: setting, triggers, context
 - Regulatory Patterns: emotional regulation, coping strategies
 - Developmental Notes: skills demonstrated, areas of growth"></textarea>
                     <div class="form-hint">
-                        💡 This section can be filled out later or auto-generated from the main observations.
+                        This section can be filled out later or auto-generated from the main observations.
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Tags Section -->
         <div class="form-section">
-            <div class="form-section-title">🏷️ Tags & Categories</div>
+            <div class="form-section-title"><span aria-hidden="true">🏷️</span> Tags & Categories</div>
             <div class="form-group">
                 <label class="form-label">Entry Type</label>
                 <div class="tag-selection">
                     <label class="tag-checkbox">
                         <input type="checkbox" name="tag-conflict" value="conflict" onchange="updateTags()">
-                        <span class="tag-label conflict">⚡ Conflict</span>
+                        <span class="tag-label conflict"><span aria-hidden="true">⚡</span> Conflict</span>
                     </label>
                     <label class="tag-checkbox">
                         <input type="checkbox" name="tag-achievement" value="achievement" onchange="updateTags()">
-                        <span class="tag-label achievement">🌟 Achievement</span>
+                        <span class="tag-label achievement"><span aria-hidden="true">🌟</span> Achievement</span>
                     </label>
                 </div>
                 <input type="hidden" name="tags" id="tags">
@@ -113,9 +112,9 @@ Example format:
                 </div>
             </div>
         </div>
-        
+
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">📝 Add Journal Entry</button>
+            <button type="submit" class="btn btn-primary"><span aria-hidden="true">📝</span> Add Journal Entry</button>
             <a href="/web/journal" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
@@ -125,34 +124,13 @@ Example format:
 // Set today's date as default
 document.getElementById('date').valueAsDate = new Date();
 
-// Collapsible sections
-function toggleSection(sectionId) {
-    const content = document.getElementById(sectionId);
-    const header = content.previousElementSibling;
-    const icon = header.querySelector('.toggle-icon');
-    
-    if (content.style.display === 'none' || content.style.display === '') {
-        content.style.display = 'block';
-        icon.textContent = '▲';
-        header.classList.add('expanded');
-    } else {
-        content.style.display = 'none';
-        icon.textContent = '▼';
-        header.classList.remove('expanded');
-    }
-}
-
 // Tag management
 function updateTags() {
     const checkboxes = document.querySelectorAll('input[type="checkbox"][name^="tag-"]');
     const selectedTags = [];
-    
     checkboxes.forEach(checkbox => {
-        if (checkbox.checked) {
-            selectedTags.push(checkbox.value);
-        }
+        if (checkbox.checked) selectedTags.push(checkbox.value);
     });
-    
     document.getElementById('tags').value = selectedTags.join(',');
 }
 

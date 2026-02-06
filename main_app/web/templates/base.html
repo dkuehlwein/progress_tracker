@@ -9,20 +9,21 @@
 </head>
 <body>
     <div class="app-container">
-        <header class="compact-header">
+        <header class="compact-header" role="banner">
             <div class="header-content">
-                <h1>📊 Progress Tracker</h1>
+                <h1><span aria-hidden="true">📊</span> Progress Tracker</h1>
                 <div class="nav-with-user">
-                    <nav class="compact-nav">
-                        <a href="/web" class="nav-link {% if request.url.path == '/web' %}active{% endif %}">🏠 Dashboard</a>
-                        <a href="/web/reading" class="nav-link {% if '/reading' in request.url.path %}active{% endif %}">📚 Reading</a>
-                        <a href="/web/drawing" class="nav-link {% if '/drawing' in request.url.path %}active{% endif %}">🎨 Drawing</a>
-                        <a href="/web/fitness" class="nav-link {% if '/fitness' in request.url.path %}active{% endif %}">💪 Fitness</a>
-                        <a href="/web/journal" class="nav-link {% if '/journal' in request.url.path %}active{% endif %}">📝 Journal</a>
+                    <nav class="compact-nav" aria-label="Main navigation">
+                        <a href="/web" class="nav-link {% if request.url.path == '/web' %}active{% endif %}" aria-current="{% if request.url.path == '/web' %}page{% endif %}"><span aria-hidden="true">🏠</span> Dashboard</a>
+                        <a href="/web/reading" class="nav-link {% if '/reading' in request.url.path %}active{% endif %}" aria-current="{% if '/reading' in request.url.path %}page{% endif %}"><span aria-hidden="true">📚</span> Reading</a>
+                        <a href="/web/drawing" class="nav-link {% if '/drawing' in request.url.path %}active{% endif %}" aria-current="{% if '/drawing' in request.url.path %}page{% endif %}"><span aria-hidden="true">🎨</span> Drawing</a>
+                        <a href="/web/fitness" class="nav-link {% if '/fitness' in request.url.path %}active{% endif %}" aria-current="{% if '/fitness' in request.url.path %}page{% endif %}"><span aria-hidden="true">💪</span> Fitness</a>
+                        <a href="/web/journal" class="nav-link {% if '/journal' in request.url.path %}active{% endif %}" aria-current="{% if '/journal' in request.url.path %}page{% endif %}"><span aria-hidden="true">📝</span> Journal</a>
                     </nav>
                     <div class="user-selector">
                         {% if users %}
-                        <select id="userSelector" class="user-select" onchange="changeUser(this.value)">
+                        <label for="userSelector" class="sr-only">Select user</label>
+                        <select id="userSelector" class="user-select" onchange="changeUser(this.value)" aria-label="Switch user">
                             <option value="">All Users</option>
                             {% for user in users %}
                             <option value="{{ user.id }}" {% if selected_user_id == user.id %}selected{% endif %}>
@@ -31,40 +32,31 @@
                             {% endfor %}
                         </select>
                         {% endif %}
+                        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle dark mode">🌙</button>
                     </div>
                 </div>
             </div>
         </header>
-        
-        {% block content %}{% endblock %}
+
+        <main role="main">
+            {% block content %}{% endblock %}
+        </main>
     </div>
-    
+
+    <script src="{{ url_for('static', path='table-utils.js') }}"></script>
     <script src="{{ url_for('static', path='app.js') }}"></script>
     <script>
-    // User switching functionality
     function changeUser(userId) {
-        const currentPath = window.location.pathname;
-        const urlParams = new URLSearchParams(window.location.search);
-        
-        if (userId) {
-            urlParams.set('user_id', userId);
-        } else {
-            urlParams.delete('user_id');
-        }
-        
-        const newUrl = currentPath + (urlParams.toString() ? '?' + urlParams.toString() : '');
-        window.location.href = newUrl;
+        const params = new URLSearchParams(window.location.search);
+        if (userId) { params.set('user_id', userId); } else { params.delete('user_id'); }
+        window.location.href = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
     }
-    
-    // Set selected user on page load
+
     document.addEventListener('DOMContentLoaded', function() {
-        const userSelector = document.getElementById('userSelector');
-        if (userSelector) {
-            const urlParams = new URLSearchParams(window.location.search);
-            const userId = urlParams.get('user_id');
-            if (userId) {
-                userSelector.value = userId;
-            }
+        const sel = document.getElementById('userSelector');
+        if (sel) {
+            const uid = new URLSearchParams(window.location.search).get('user_id');
+            if (uid) sel.value = uid;
         }
     });
     </script>

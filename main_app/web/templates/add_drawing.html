@@ -5,9 +5,9 @@
 {% block content %}
 <div class="card">
     <div class="card-header">
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <a href="/web/drawing" style="color: #667eea; text-decoration: none; font-size: 1.5rem;">←</a>
-            <h2 class="card-title">🖌️ Add Drawing Entry</h2>
+        <div class="card-header-with-back">
+            <a href="/web/drawing" class="back-link" aria-label="Back to drawing entries">&larr;</a>
+            <h2 class="card-title"><span aria-hidden="true">🖌️</span> Add Drawing Entry</h2>
         </div>
     </div>
 </div>
@@ -15,7 +15,7 @@
 <div class="card">
     <form action="/web/drawing/add" method="POST" enctype="multipart/form-data">
         <div class="form-section">
-            <div class="form-section-title">📝 Basic Information</div>
+            <div class="form-section-title"><span aria-hidden="true">📝</span> Basic Information</div>
             <div class="form-grid">
                 <div class="form-group">
                     <label for="user_id" class="form-label required">User</label>
@@ -25,19 +25,19 @@
                         {% endfor %}
                     </select>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="title" class="form-label required">Title</label>
-                    <input type="text" name="title" id="title" class="form-input" required 
+                    <input type="text" name="title" id="title" class="form-input" required
                            placeholder="Rainbow Snake Bead Design">
                 </div>
-                
+
                 <div class="form-group">
                     <label for="subject" class="form-label">Subject</label>
                     <input type="text" name="subject" id="subject" class="form-input"
                            placeholder="Rainbow snake design using placement beads">
                 </div>
-                
+
                 <div class="form-group">
                     <label for="medium" class="form-label">Medium</label>
                     <select name="medium" id="medium" class="form-select">
@@ -49,40 +49,40 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="form-section">
-            <div class="form-section-title">📷 Image Upload</div>
+            <div class="form-section-title"><span aria-hidden="true">📷</span> Image Upload</div>
             <div class="upload-area" id="uploadArea">
                 <input type="file" id="imageFile" name="image" accept="image/*">
-                <div class="upload-icon">📷</div>
+                <div class="upload-icon" aria-hidden="true">📷</div>
                 <div class="upload-text">Click to upload or drag & drop</div>
                 <div class="upload-hint">PNG, JPG, GIF up to 10MB</div>
             </div>
-            <div id="imagePreview" style="display: none;">
-                <img id="previewImg" class="image-preview" alt="Preview">
+            <div id="imagePreview" class="image-preview-container" style="display:none">
+                <img id="previewImg" class="image-preview" alt="Preview of selected image">
                 <button type="button" id="removeImage" class="btn btn-outline btn-sm">Remove Image</button>
             </div>
         </div>
-        
-        <div class="form-section">
+
+        <div class="form-section optional">
             <div class="form-section-title">
-                📝 Additional Details
+                <span aria-hidden="true">📝</span> Additional Details
                 <span class="optional-badge">Optional</span>
             </div>
-            <div class="form-content">
+            <div class="collapsible-content">
                 <div class="form-grid">
                     <div class="form-group full-width">
                         <label for="context" class="form-label">Context</label>
                         <textarea name="context" id="context" class="form-textarea"
                                   placeholder="Multi-day home project, working alongside almost-8-year-old peer (User-provided context)"></textarea>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="duration_hours" class="form-label">Duration (hours)</label>
                         <input type="number" name="duration_hours" id="duration_hours" class="form-input"
                                step="0.1" placeholder="5.5">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="status" class="form-label">Status</label>
                         <select name="status" id="status" class="form-select">
@@ -91,17 +91,17 @@
                             {% endfor %}
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="start_date" class="form-label">Start Date</label>
                         <input type="date" name="start_date" id="start_date" class="form-input">
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="end_date" class="form-label">End Date</label>
                         <input type="date" name="end_date" id="end_date" class="form-input">
                     </div>
-                    
+
                     <div class="form-group full-width">
                         <label for="technical_notes" class="form-label">Technical Notes</label>
                         <textarea name="technical_notes" id="technical_notes" class="form-textarea"
@@ -116,7 +116,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="form-actions">
             <button type="submit" class="btn btn-primary btn-lg">Add Drawing Entry</button>
             <a href="/web/drawing" class="btn btn-secondary">Cancel</a>
@@ -125,7 +125,6 @@
 </div>
 
 <script>
-// Image upload handling
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('imageFile');
 const previewDiv = document.getElementById('imagePreview');
@@ -159,18 +158,17 @@ fileInput.addEventListener('change', (e) => {
 removeBtn.addEventListener('click', () => {
     fileInput.value = '';
     previewDiv.style.display = 'none';
-    uploadArea.style.display = 'block';
+    uploadArea.style.display = '';
 });
 
 function previewImage(file) {
     const reader = new FileReader();
     reader.onload = (e) => {
         previewImg.src = e.target.result;
-        previewDiv.style.display = 'block';
+        previewDiv.style.display = '';
         uploadArea.style.display = 'none';
     };
     reader.readAsDataURL(file);
 }
-
 </script>
 {% endblock %}

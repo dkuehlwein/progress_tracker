@@ -5,92 +5,107 @@
 {% block content %}
 <div class="card">
     <div class="card-header">
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <a href="/web/fitness" style="color: #667eea; text-decoration: none; font-size: 1.5rem;">←</a>
-            <h2 class="card-title">🏃 Add Fitness Entry</h2>
+        <div class="card-header-with-back">
+            <a href="/web/fitness" class="back-link" aria-label="Back to fitness entries">&larr;</a>
+            <h2 class="card-title"><span aria-hidden="true">🏃</span> Add Fitness Entry</h2>
         </div>
     </div>
 </div>
 
 <div class="card">
     <form action="/web/fitness/add" method="POST">
-        <div class="form-group">
-            <label for="user_id">User:</label>
-            <select name="user_id" id="user_id" required>
-                {% for user in users %}
-                <option value="{{ user.id }}">{{ user.display_name }}</option>
-                {% endfor %}
-            </select>
+        <div class="form-section">
+            <div class="form-section-title"><span aria-hidden="true">📝</span> Basic Information</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="user_id" class="form-label required">User</label>
+                    <select name="user_id" id="user_id" class="form-select" required>
+                        {% for user in users %}
+                        <option value="{{ user.id }}">{{ user.display_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="title" class="form-label required">Title</label>
+                    <input type="text" name="title" id="title" class="form-input" required
+                           placeholder="Morning Run in the Park">
+                </div>
+
+                <div class="form-group">
+                    <label for="activity_type" class="form-label">Activity Type</label>
+                    <select name="activity_type" id="activity_type" class="form-select">
+                        <option value="">Select type</option>
+                        {% for type in fitness_types %}
+                        <option value="{{ type }}">{{ type.replace('_', ' ').title() }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="status" class="form-label">Status</label>
+                    <select name="status" id="status" class="form-select">
+                        {% for status in fitness_statuses %}
+                        <option value="{{ status }}">{{ status.replace('_', ' ').title() }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description" class="form-label">Description</label>
+                <textarea name="description" id="description" class="form-textarea"
+                          placeholder="30-minute jog through the neighborhood"></textarea>
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label for="title">Title *:</label>
-            <input type="text" name="title" id="title" required 
-                   placeholder="Morning Run in the Park">
+
+        <div class="form-section optional">
+            <div class="form-section-title">
+                <span aria-hidden="true">📊</span> Metrics & Details
+                <span class="optional-badge">Optional</span>
+            </div>
+            <div class="collapsible-content">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="duration_minutes" class="form-label">Duration (minutes)</label>
+                        <input type="number" name="duration_minutes" id="duration_minutes" class="form-input"
+                               step="0.1" min="0" placeholder="30">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="distance_km" class="form-label">Distance (km)</label>
+                        <input type="number" name="distance_km" id="distance_km" class="form-input"
+                               step="0.1" min="0" placeholder="5.2">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="intensity_level" class="form-label">Intensity Level</label>
+                        <select name="intensity_level" id="intensity_level" class="form-select">
+                            <option value="">Select intensity</option>
+                            <option value="low">Low</option>
+                            <option value="moderate">Moderate</option>
+                            <option value="high">High</option>
+                            <option value="very high">Very High</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location" class="form-label">Location</label>
+                        <input type="text" name="location" id="location" class="form-input"
+                               placeholder="Central Park">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea name="notes" id="notes" class="form-textarea"
+                                  placeholder="Felt great today, maintained good pace throughout"></textarea>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <div class="form-group">
-            <label for="activity_type">Activity Type:</label>
-            <select name="activity_type" id="activity_type">
-                <option value="">Select type</option>
-                {% for type in fitness_types %}
-                <option value="{{ type }}">{{ type.replace('_', ' ').title() }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <div class="form-group">
-            <label for="description">Description:</label>
-            <textarea name="description" id="description" 
-                      placeholder="30-minute jog through the neighborhood"></textarea>
-        </div>
-        
-        <div class="form-group">
-            <label for="duration_minutes">Duration (minutes):</label>
-            <input type="number" name="duration_minutes" id="duration_minutes" 
-                   step="0.1" placeholder="30">
-        </div>
-        
-        <div class="form-group">
-            <label for="distance_km">Distance (km):</label>
-            <input type="number" name="distance_km" id="distance_km" 
-                   step="0.1" placeholder="5.2">
-        </div>
-        
-        <div class="form-group">
-            <label for="intensity_level">Intensity Level:</label>
-            <select name="intensity_level" id="intensity_level">
-                <option value="">Select intensity</option>
-                <option value="low">Low</option>
-                <option value="moderate">Moderate</option>
-                <option value="high">High</option>
-                <option value="very high">Very High</option>
-            </select>
-        </div>
-        
-        <div class="form-group">
-            <label for="location">Location:</label>
-            <input type="text" name="location" id="location" 
-                   placeholder="Central Park">
-        </div>
-        
-        <div class="form-group">
-            <label for="status">Status:</label>
-            <select name="status" id="status">
-                {% for status in fitness_statuses %}
-                <option value="{{ status }}">{{ status.replace('_', ' ').title() }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <div class="form-group">
-            <label for="notes">Notes:</label>
-            <textarea name="notes" id="notes" 
-                      placeholder="Felt great today, maintained good pace throughout"></textarea>
-        </div>
-        
+
         <div class="form-actions">
-            <button type="submit" class="btn">Add Fitness Entry</button>
+            <button type="submit" class="btn btn-primary">Add Fitness Entry</button>
             <a href="/web/fitness" class="btn btn-secondary">Cancel</a>
         </div>
     </form>

@@ -1,406 +1,298 @@
-// Progress Tracker - Interactive Features
-document.addEventListener('DOMContentLoaded', function() {
-    
-    // Form Enhancement
+/* ═══════════════════════════════════════════════════════════
+   Progress Tracker – Core Interactive Features
+   ═══════════════════════════════════════════════════════════ */
+
+document.addEventListener('DOMContentLoaded', () => {
     enhanceForms();
-    
-    // Progressive Disclosure
     setupToggleSections();
-    
-    // Auto-save for forms
     setupAutoSave();
-    
-    // Status updates with animation
-    animateStatusChanges();
-    
-    // Mobile optimizations
     setupMobileOptimizations();
-    
+    setupKeyboardShortcuts();
+    setupThemeToggle();
 });
 
-// Enhanced Form Experience
-function enhanceForms() {
-    const forms = document.querySelectorAll('form');
-    
-    forms.forEach(form => {
-        // Add loading state on submit
-        form.addEventListener('submit', function(e) {
-            const submitBtn = form.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.classList.add('loading');
-                submitBtn.disabled = true;
-                
-                // Add spinner
-                const originalText = submitBtn.textContent;
-                submitBtn.innerHTML = `
-                    <span class="spinner"></span>
-                    ${originalText}
-                `;
-            }
-        });
-        
-        // Smart form validation
-        const inputs = form.querySelectorAll('input, select, textarea');
-        inputs.forEach(input => {
-            input.addEventListener('blur', validateField);
-            input.addEventListener('input', clearErrors);
-        });
-    });
-}
+/* ── Theme toggle ──────────────────────────────────────────── */
 
-// Progressive Disclosure for Optional Sections
-function setupToggleSections() {
-    const optionalSections = document.querySelectorAll('.form-section.optional');
-    
-    optionalSections.forEach(section => {
-        const title = section.querySelector('.form-section-title');
-        const content = section.querySelector('.collapsible-content') || createCollapsibleWrapper(section);
-        
-        // Create toggle functionality
-        title.classList.add('toggle-section');
-        title.innerHTML = `
-            <span class="toggle-icon">▶</span>
-            ${title.textContent}
-            <span class="optional-badge">Optional</span>
-        `;
-        
-        // Initially hide optional sections
-        content.style.maxHeight = '0';
-        content.style.overflow = 'hidden';
-        
-        title.addEventListener('click', () => {
-            const isExpanded = title.classList.contains('expanded');
-            
-            if (isExpanded) {
-                title.classList.remove('expanded');
-                content.style.maxHeight = '0';
-            } else {
-                title.classList.add('expanded');
-                content.style.maxHeight = content.scrollHeight + 'px';
-            }
-        });
-    });
-}
+function setupThemeToggle() {
+    const btn = document.getElementById('themeToggle');
+    if (!btn) return;
 
-function createCollapsibleWrapper(section) {
-    const content = document.createElement('div');
-    content.className = 'collapsible-content';
-    
-    // Move all children except title to wrapper
-    const title = section.querySelector('.form-section-title');
-    while (section.children.length > 1) {
-        if (section.children[1] !== title) {
-            content.appendChild(section.children[1]);
-        } else {
-            break;
-        }
+    const saved = localStorage.getItem('theme');
+    if (saved) {
+        document.documentElement.setAttribute('data-theme', saved);
     }
-    
-    section.appendChild(content);
-    return content;
+    updateThemeIcon(btn);
+
+    btn.addEventListener('click', () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        const isDark = current === 'dark' ||
+            (!current && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const next = isDark ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        updateThemeIcon(btn);
+    });
 }
 
-// Auto-save Draft Functionality
-function setupAutoSave() {
-    const forms = document.querySelectorAll('form');
-    
-    forms.forEach(form => {
-        const formId = form.action || 'default-form';
-        const inputs = form.querySelectorAll('input, select, textarea');
-        
-        // Load saved data
-        loadFormData(form, formId);
-        
-        // Save on input
-        inputs.forEach(input => {
-            input.addEventListener('input', debounce(() => {
-                saveFormData(form, formId);
-                showAutoSaveIndicator();
-            }, 500));
-        });
-        
-        // Clear saved data on successful submit
+function updateThemeIcon(btn) {
+    const theme = document.documentElement.getAttribute('data-theme');
+    const isDark = theme === 'dark' ||
+        (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    btn.textContent = isDark ? '\u2600\ufe0f' : '\ud83c\udf19';
+    btn.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+}
+
+/* ── Form enhancement ──────────────────────────────────────── */
+
+function enhanceForms() {
+    document.querySelectorAll('form').forEach(form => {
         form.addEventListener('submit', () => {
-            setTimeout(() => {
-                clearFormData(formId);
-            }, 1000);
+            const btn = form.querySelector('button[type="submit"]');
+            if (btn && !btn.disabled) {
+                btn.classList.add('loading');
+                btn.disabled = true;
+                const text = btn.textContent;
+                btn.innerHTML = '<span class="spinner"></span> ' + text;
+            }
+        });
+
+        form.querySelectorAll('input, select, textarea').forEach(input => {
+            input.addEventListener('blur', validateField);
+            input.addEventListener('input', (e) => clearFieldError(e.target));
         });
     });
 }
 
-// Form Validation
+/* ── Validation ────────────────────────────────────────────── */
+
 function validateField(e) {
     const field = e.target;
     const value = field.value.trim();
-    const isRequired = field.hasAttribute('required');
-    
+
     clearFieldError(field);
-    
-    if (isRequired && !value) {
+
+    if (field.hasAttribute('required') && !value) {
         showFieldError(field, 'This field is required');
         return false;
     }
-    
-    // Specific validations
-    if (field.type === 'email' && value && !isValidEmail(value)) {
+
+    if (field.type === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
         showFieldError(field, 'Please enter a valid email');
         return false;
     }
-    
+
     if (field.type === 'number' && value) {
+        const num = parseFloat(value);
         const min = field.getAttribute('min');
         const max = field.getAttribute('max');
-        const numValue = parseFloat(value);
-        
-        if (min && numValue < parseFloat(min)) {
-            showFieldError(field, `Minimum value is ${min}`);
+        if (min !== null && num < parseFloat(min)) {
+            showFieldError(field, 'Minimum value is ' + min);
             return false;
         }
-        
-        if (max && numValue > parseFloat(max)) {
-            showFieldError(field, `Maximum value is ${max}`);
+        if (max !== null && num > parseFloat(max)) {
+            showFieldError(field, 'Maximum value is ' + max);
             return false;
         }
     }
-    
+
     return true;
 }
 
 function showFieldError(field, message) {
-    const formGroup = field.closest('.form-group');
-    
-    // Remove existing error
-    const existingError = formGroup.querySelector('.field-error');
-    if (existingError) existingError.remove();
-    
-    // Add error styling
-    field.style.borderColor = 'var(--error)';
-    
-    // Add error message
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'field-error';
-    errorDiv.style.color = 'var(--error)';
-    errorDiv.style.fontSize = 'var(--font-sm)';
-    errorDiv.style.marginTop = 'var(--spacing-xs)';
-    errorDiv.textContent = message;
-    
-    formGroup.appendChild(errorDiv);
+    const group = field.closest('.form-group');
+    if (!group) return;
+
+    const existing = group.querySelector('.field-error');
+    if (existing) existing.remove();
+
+    field.classList.add('field-invalid');
+    field.setAttribute('aria-invalid', 'true');
+
+    const err = document.createElement('div');
+    err.className = 'field-error';
+    err.setAttribute('role', 'alert');
+    err.textContent = message;
+    group.appendChild(err);
 }
 
 function clearFieldError(field) {
-    const formGroup = field.closest('.form-group');
-    const error = formGroup.querySelector('.field-error');
-    if (error) error.remove();
-    
-    field.style.borderColor = '';
+    const group = field.closest('.form-group');
+    if (!group) return;
+
+    const err = group.querySelector('.field-error');
+    if (err) err.remove();
+
+    field.classList.remove('field-invalid');
+    field.removeAttribute('aria-invalid');
 }
 
-function clearErrors(e) {
-    clearFieldError(e.target);
-}
+/* ── Progressive disclosure ────────────────────────────────── */
 
-// Utility Functions
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
+function setupToggleSections() {
+    document.querySelectorAll('.form-section.optional').forEach(section => {
+        const title = section.querySelector('.form-section-title');
+        if (!title) return;
 
-function isValidEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
+        const content = section.querySelector('.collapsible-content') || wrapContent(section);
 
-// Auto-save Helper Functions
-function saveFormData(form, formId) {
-    const data = {};
-    const inputs = form.querySelectorAll('input, select, textarea');
-    
-    inputs.forEach(input => {
-        if (input.name && input.value) {
-            data[input.name] = input.value;
+        title.classList.add('toggle-section');
+        title.setAttribute('role', 'button');
+        title.setAttribute('aria-expanded', 'false');
+        title.setAttribute('tabindex', '0');
+
+        // Only add toggle elements if they're not already there
+        if (!title.querySelector('.toggle-icon')) {
+            const text = title.textContent;
+            title.innerHTML = '<span class="toggle-icon" aria-hidden="true">\u25b6</span> ' + text;
+            if (!title.querySelector('.optional-badge')) {
+                title.insertAdjacentHTML('beforeend', ' <span class="optional-badge">Optional</span>');
+            }
         }
+
+        content.style.maxHeight = '0';
+        content.style.overflow = 'hidden';
+
+        const toggle = () => {
+            const expanded = title.classList.toggle('expanded');
+            title.setAttribute('aria-expanded', String(expanded));
+            content.style.maxHeight = expanded ? content.scrollHeight + 'px' : '0';
+        };
+
+        title.addEventListener('click', toggle);
+        title.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+        });
     });
-    
-    localStorage.setItem(`form-draft-${formId}`, JSON.stringify(data));
 }
 
-function loadFormData(form, formId) {
-    const savedData = localStorage.getItem(`form-draft-${formId}`);
-    if (!savedData) return;
-    
-    try {
-        const data = JSON.parse(savedData);
+function wrapContent(section) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'collapsible-content';
+    const title = section.querySelector('.form-section-title');
+    while (section.children.length > 1) {
+        if (section.children[1] !== title) {
+            wrapper.appendChild(section.children[1]);
+        } else break;
+    }
+    section.appendChild(wrapper);
+    return wrapper;
+}
+
+/* ── Auto-save drafts ──────────────────────────────────────── */
+
+function setupAutoSave() {
+    document.querySelectorAll('form').forEach(form => {
+        const key = 'draft-' + (form.action || location.pathname);
         const inputs = form.querySelectorAll('input, select, textarea');
-        
+
+        restoreDraft(form, key);
+
         inputs.forEach(input => {
-            if (input.name && data[input.name]) {
-                input.value = data[input.name];
+            input.addEventListener('input', debounce(() => {
+                saveDraft(form, key);
+                showToast('Draft saved', 'success');
+            }, 500));
+        });
+
+        form.addEventListener('submit', () => {
+            try { localStorage.removeItem(key); } catch (_) { /* quota */ }
+        });
+    });
+}
+
+function saveDraft(form, key) {
+    try {
+        const data = {};
+        form.querySelectorAll('input, select, textarea').forEach(el => {
+            if (el.name && el.value && el.type !== 'file') data[el.name] = el.value;
+        });
+        localStorage.setItem(key, JSON.stringify(data));
+    } catch (_) { /* quota exceeded – silently ignore */ }
+}
+
+function restoreDraft(form, key) {
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        let restored = false;
+        form.querySelectorAll('input, select, textarea').forEach(el => {
+            if (el.name && data[el.name] && el.type !== 'file') {
+                el.value = data[el.name];
+                restored = true;
             }
         });
-        
-        showDraftRestoreMessage();
-    } catch (e) {
-        console.warn('Failed to restore form data:', e);
-    }
-}
-
-function clearFormData(formId) {
-    localStorage.removeItem(`form-draft-${formId}`);
-}
-
-function showAutoSaveIndicator() {
-    let indicator = document.getElementById('autosave-indicator');
-    if (!indicator) {
-        indicator = document.createElement('div');
-        indicator.id = 'autosave-indicator';
-        indicator.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--success);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        `;
-        indicator.textContent = '✓ Draft saved';
-        document.body.appendChild(indicator);
-    }
-    
-    indicator.style.opacity = '1';
-    setTimeout(() => {
-        indicator.style.opacity = '0';
-    }, 2000);
-}
-
-function showDraftRestoreMessage() {
-    const alert = document.createElement('div');
-    alert.className = 'alert alert-info';
-    alert.innerHTML = `
-        <span>📝</span>
-        <span>Your previous draft has been restored.</span>
-        <button onclick="this.parentElement.remove()" style="margin-left: auto; background: none; border: none; cursor: pointer;">×</button>
-    `;
-    
-    const firstCard = document.querySelector('.card');
-    if (firstCard) {
-        firstCard.parentNode.insertBefore(alert, firstCard);
-    }
-    
-    // Auto-hide after 5 seconds
-    setTimeout(() => {
-        if (alert.parentNode) alert.remove();
-    }, 5000);
-}
-
-// Animate Status Changes
-function animateStatusChanges() {
-    const statusBadges = document.querySelectorAll('.status-badge');
-    
-    statusBadges.forEach((badge, index) => {
-        badge.style.animation = `fadeInUp 0.6s ease forwards ${index * 0.1}s`;
-        badge.style.opacity = '0';
-    });
-    
-    // Add CSS animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        if (restored) {
+            showAlert(form, 'Your previous draft has been restored.', 'info');
         }
-    `;
-    document.head.appendChild(style);
+    } catch (_) { /* corrupt data – ignore */ }
 }
 
-// Mobile Optimizations
+/* ── Toast notifications ───────────────────────────────────── */
+
+function showToast(message, type) {
+    let toast = document.getElementById('app-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'app-toast';
+        toast.className = 'toast toast-' + (type || 'success');
+        toast.setAttribute('role', 'status');
+        toast.setAttribute('aria-live', 'polite');
+        document.body.appendChild(toast);
+    }
+    toast.textContent = '\u2713 ' + message;
+    toast.classList.add('visible');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove('visible'), 2000);
+}
+
+function showAlert(form, message, type) {
+    const alert = document.createElement('div');
+    alert.className = 'alert alert-' + type;
+    alert.setAttribute('role', 'status');
+    alert.innerHTML = '<span aria-hidden="true">\ud83d\udcdd</span> <span>' + message + '</span>' +
+        '<button type="button" onclick="this.parentElement.remove()" aria-label="Dismiss" ' +
+        'style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:1.2rem;">\u00d7</button>';
+    form.insertBefore(alert, form.firstChild);
+    setTimeout(() => { if (alert.parentNode) alert.remove(); }, 5000);
+}
+
+/* ── Mobile ────────────────────────────────────────────────── */
+
 function setupMobileOptimizations() {
-    // Add touch-friendly interactions
     if ('ontouchstart' in window) {
         document.body.classList.add('touch-device');
-        
-        // Improve button touch targets
-        const style = document.createElement('style');
-        style.textContent = `
-            .touch-device .btn {
-                min-height: 44px;
-                min-width: 44px;
-            }
-            
-            .touch-device .entry-card {
-                padding: var(--spacing-xl);
-            }
-            
-            .touch-device .nav-item {
-                padding: var(--spacing-xl);
-            }
-        `;
-        document.head.appendChild(style);
     }
-    
-    // Handle viewport changes
-    function handleViewportChange() {
-        const vh = window.innerHeight * 0.01;
-        document.documentElement.style.setProperty('--vh', `${vh}px`);
-    }
-    
-    window.addEventListener('resize', handleViewportChange);
-    handleViewportChange();
+    const setVh = () => document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px');
+    window.addEventListener('resize', setVh);
+    setVh();
 }
 
-// Quick Actions for Better UX
-function setupQuickActions() {
-    // Keyboard shortcuts
-    document.addEventListener('keydown', function(e) {
+/* ── Keyboard shortcuts ────────────────────────────────────── */
+
+function setupKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
         if (e.ctrlKey || e.metaKey) {
-            switch(e.key) {
-                case 'k':
-                    e.preventDefault();
-                    focusSearch();
-                    break;
-                case 's':
-                    e.preventDefault();
-                    const activeForm = document.querySelector('form:focus-within');
-                    if (activeForm) {
-                        activeForm.requestSubmit();
-                    }
-                    break;
+            if (e.key === 'k') {
+                e.preventDefault();
+                const search = document.querySelector('input[type="search"], input[placeholder*="search" i], #searchFilter');
+                if (search) { search.focus(); search.select(); }
+            }
+            if (e.key === 's') {
+                e.preventDefault();
+                const form = document.querySelector('form:focus-within');
+                if (form) form.requestSubmit();
             }
         }
-        
         if (e.key === 'Escape') {
-            closeModals();
+            closeImageModal?.();
         }
     });
 }
 
-function focusSearch() {
-    const searchInput = document.querySelector('input[type="search"], input[placeholder*="search" i]');
-    if (searchInput) {
-        searchInput.focus();
-        searchInput.select();
-    }
-}
+/* ── Utilities ─────────────────────────────────────────────── */
 
-function closeModals() {
-    const modals = document.querySelectorAll('.modal, .overlay');
-    modals.forEach(modal => modal.remove());
+function debounce(fn, ms) {
+    let t;
+    return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
 }
-
-// Initialize quick actions
-setupQuickActions();
