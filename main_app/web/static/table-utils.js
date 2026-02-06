@@ -162,7 +162,7 @@ class FilterableTable {
             row.classList.add('expandable');
             row.addEventListener('click', (e) => {
                 const tag = e.target.tagName;
-                if (tag === 'BUTTON' || tag === 'A' || tag === 'IMG' || e.target.closest('form')) return;
+                if (tag === 'BUTTON' || tag === 'A' || tag === 'IMG' || e.target.closest('a') || e.target.closest('form')) return;
 
                 const details = this._getDetailsRow(row);
                 if (details) {
